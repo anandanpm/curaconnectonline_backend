@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+      "target": "es2020",                        // Specify ECMAScript target version
+      "module": "commonjs",                      // Use CommonJS modules
+      "outDir": "./dist",                        // Output directory for compiled files
+      "strict": true,                            // Enable strict type-checking options
+      "esModuleInterop": true,                   // Allow default imports from CommonJS modules
+      "skipLibCheck": true,                      // Skip type checking of declaration files
+      "forceConsistentCasingInFileNames": true,  // Ensure consistent casing in imports
+      "resolveJsonModule": true,                 // Allow importing JSON files
+      "baseUrl": "./",                           // Base directory for module resolution
+      "paths": {
+        "*": ["*"]                               // Resolve all paths relative to the base
+      }
+    },
+    "include": [
+      "index.ts",                                  
+      "Config/**/*",                             
+      "Controller/**/*",                        
+      "Interfaces/**/*",                         
+      "Middleware/**/*",                         
+      "Model/**/*",                              
+      "Repository/**/*",                         
+      "Route/**/*",                            
+      "Services/**/*"                           
+    ],
+    "exclude": [
+      "node_modules"                             
+    ]
+  }
+  
