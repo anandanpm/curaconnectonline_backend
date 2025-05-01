@@ -4,9 +4,9 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { userRepository } from "../Repository/userRepository";
 import { IUserRepository } from "../Interfaces/iUserRepository";
-import { ChartAppointmentStats, DashboardStats } from "Interfaces/appointment";
-import { IAdminService } from "Interfaces/iAdminService";
-import { IEmailService } from "Interfaces/iEmailService";
+import { ChartAppointmentStats, DashboardStats } from "../Interfaces/appointment";
+import { IAdminService } from "../Interfaces/iAdminService";
+import { IEmailService } from "../Interfaces/iEmailService";
 import { emailService } from "./emailService";
 dotenv.config();
 

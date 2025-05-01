@@ -12,7 +12,7 @@ import { Slot } from '../Interfaces/slot';
 import { ISlotRepository } from "../Interfaces/iSlotRepository";
 import { IDoctorService } from "../Interfaces/iDoctorService";
 import { IOtpService } from "../Interfaces/iotpService";
-import { Prescription } from "Interfaces/prescription";
+import { Prescription } from "../Interfaces/prescription";
 
 dotenv.config();
 

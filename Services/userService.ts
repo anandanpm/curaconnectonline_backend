@@ -12,10 +12,10 @@ import { emailService } from './emailService';
 import { IUserRepository } from '../Interfaces/iUserRepository';
 import { userRepository } from '../Repository/userRepository';
 import { ISlotRepository } from '../Interfaces/iSlotRepository';
-import { IUserService } from 'Interfaces/iUserService';
-import { AppointmentDetails, AppointmentResponse, RefundResponse } from 'Interfaces/appointment';
-import { IOtpService } from 'Interfaces/iotpService';
-import { Prescription } from 'Interfaces/prescription';
+import { IUserService } from '../Interfaces/iUserService';
+import { AppointmentDetails, AppointmentResponse, RefundResponse } from '../Interfaces/appointment';
+import { IOtpService } from '../Interfaces/iotpService';
+import { Prescription } from '../Interfaces/prescription';
 dotenv.config();
 
 

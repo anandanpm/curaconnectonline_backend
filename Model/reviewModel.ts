@@ -1,4 +1,4 @@
-import { Review } from 'Interfaces/user';
+import { Review } from '../Interfaces/user';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 const ReviewSchema: Schema<Review> = new Schema({

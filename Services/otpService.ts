@@ -3,7 +3,7 @@
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-import { IOtpService } from 'Interfaces/iotpService';
+import { IOtpService } from '../Interfaces/iotpService';
 dotenv.config()
 
 class OtpService implements IOtpService {
