@@ -3,7 +3,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { userRepository } from "../Repository/userRepository";
-// import { emailService } from "./emailService";
 import { IUserRepository } from "../Interfaces/iUserRepository";
 import { ChartAppointmentStats, DashboardStats } from "Interfaces/appointment";
 import { IAdminService } from "Interfaces/iAdminService";

@@ -342,12 +342,6 @@ export class UserService implements IUserService {
         console.warn("Failed to send appointment confirmation email")
       }
 
-
-      // return {
-      //   message: "Appointment created successfully and slot updated",
-      //   appointment,
-      //   updatedSlot,
-      // }
       return {
         message: "Appointment created successfully and slot updated",
         appointment: {

@@ -556,22 +556,6 @@ class UserRepository implements IUserRepository {
     }
   }
 
-  // async getPrescriptions(appointmentId: string): Promise<Prescription[]> {
-  //   try {
-  //     const prescriptions = await PrescriptionModel
-  //       .find({ appointment_id: appointmentId })
-  //       .lean();
-
-  //     return prescriptions;
-  //   } catch (error) {
-
-  //     console.error('Error fetching prescriptions:', error);
-
-  //     // Rethrow to let the service handle the error
-  //     throw error;
-  //   }
-  // }
-
   async getPrescriptions(appointmentId: string): Promise<any> {
     try {
       // First, find the prescription by appointment ID
