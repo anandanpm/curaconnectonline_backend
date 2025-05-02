@@ -13,13 +13,14 @@ const doctorRoute_1 = __importDefault(require("./Route/doctorRoute"));
 const adminRoute_1 = __importDefault(require("./Route/adminRoute"));
 const conversationRoute_1 = __importDefault(require("./Route/conversationRoute"));
 const http_1 = __importDefault(require("http"));
-const websocket_1 = __importDefault(require("./Utils/websocket"));
+const webSocket_1 = __importDefault(require("./Utils/webSocket"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT;
 (0, db_1.default)();
 app.use((0, cors_1.default)({
     origin: process.env.FRONTEND_URL,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
 app.use(express_1.default.json());
@@ -33,5 +34,5 @@ app.use("/doctor", doctorRoute_1.default);
 app.use("/admin", adminRoute_1.default);
 app.use("/chat", conversationRoute_1.default);
 const server = http_1.default.createServer(app);
-(0, websocket_1.default)(server);
+(0, webSocket_1.default)(server);
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
