@@ -10,7 +10,7 @@ import doctorRoute from "./Route/doctorRoute";
 import adminRoute from "./Route/adminRoute";
 import conversationRoute from "./Route/conversationRoute";
 import http from "http";
-import initWebSocket from "./Utils/websocket";
+import initWebSocket from "./Utils/webSocket";
 
 dotenv.config();
 
