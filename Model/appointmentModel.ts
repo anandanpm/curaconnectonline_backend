@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { Appointment } from "../Interfaces/appointment";
+import { appointment } from "../Interfaces/appointment";
 
-const appointmentSchema = new Schema<Appointment>({
+const appointmentSchema = new Schema<appointment>({
   slot_id: { type: Schema.Types.ObjectId, ref: 'Slot', required: true },
   user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   amount: { type: Number, required: true },
@@ -16,5 +16,5 @@ const appointmentSchema = new Schema<Appointment>({
   updated_at: { type: Date, default: Date.now }
 });
 
-const AppointmentModel = mongoose.model<Appointment>('Appointment', appointmentSchema);
-export default AppointmentModel;
+const appointmentModel = mongoose.model<appointment>('Appointment', appointmentSchema);
+export default appointmentModel;

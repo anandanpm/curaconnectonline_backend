@@ -1,30 +1,46 @@
 import { Request, Response } from 'express';
-import { AdminService } from '../Services/adminService';
-import { IAdminService } from '../Interfaces/iAdminService';
-import { userRepository } from '../Repository/userRepository';
-import { emailService } from '../Services/emailService';
+import { _adminService } from '../Services/adminService';
+import { IadminService } from '../Entities/iAdminService';
+import  _userRepository  from '../Repository/userRepository';
+import  _emailService  from '../Services/emailService';
 import jwt from 'jsonwebtoken';
 
 
-class AdminController {
-  constructor(private AdminService: IAdminService) { }
+class adminController {
+  constructor(private _adminService: IadminService) { }
 
 
   async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body;
-      const { accessToken, refreshToken, username, email: adminEmail, role, isActive } = await this.AdminService.login(email, password);
+      const { accessToken, refreshToken, username, email: adminEmail, role, isActive } = await this._adminService.login(email, password);
+
+      // res.cookie('accessToken',accessToken, {
+      //   httpOnly: true,
+      //   secure: true, // Required for HTTPS
+      //   sameSite: 'none', // Required for cross-site cookies
+      //   maxAge: 24 * 60 * 60 * 1000, // 1 day
+      // });
+  
+      // res.cookie('refreshToken', refreshToken, {
+      //   httpOnly: true,
+      //   secure: true,
+      //   sameSite: 'none',
+      //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      // });
 
       res.cookie('accessToken', accessToken, {
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 15 * 60 * 1000,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        path: '/',
+        maxAge: 15 * 60 * 1000 // 15 minutes
       });
 
       res.cookie('refreshToken', refreshToken, {
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
       res.json({ message: 'Admin login successful', username, email: adminEmail, role, isActive });
@@ -51,7 +67,7 @@ class AdminController {
 
   async getPatients(req: Request, res: Response): Promise<void> {
     try {
-      let response = await this.AdminService.getPatients();
+      let response = await this._adminService.getPatients();
       res.status(200).json(response);
     } catch (error) {
       if (error instanceof Error) res.status(400).json({ message: error.message });
@@ -64,7 +80,7 @@ class AdminController {
       const { id } = req.params;
       const { is_active } = req.body;
 
-      const updatedPatient = await this.AdminService.togglePatientStatus(id, is_active);
+      const updatedPatient = await this._adminService.togglePatientStatus(id, is_active);
       res.status(200).json(updatedPatient);
     } catch (error) {
       console.error('Toggle Patient Status Error:', error);
@@ -78,7 +94,7 @@ class AdminController {
 
   async getVerifyDoctors(req: Request, res: Response): Promise<void> {
     try {
-      const doctors = await this.AdminService.getVerifyDoctors();
+      const doctors = await this._adminService.getVerifyDoctors();
       res.status(200).json(doctors);
     } catch (error) {
       console.error('Get Doctors Error:', error);
@@ -92,7 +108,7 @@ class AdminController {
 
   async getDoctors(req: Request, res: Response): Promise<void> {
     try {
-      const doctors = await this.AdminService.getDoctors();
+      const doctors = await this._adminService.getDoctors();
       res.status(200).json(doctors)
 
     } catch (error) {
@@ -110,7 +126,7 @@ class AdminController {
     try {
       const { id } = req.params;
 
-      const updatedDoctor = await this.AdminService.toggleDoctorStatus(id);
+      const updatedDoctor = await this._adminService.toggleDoctorStatus(id);
       console.log(updatedDoctor, 'the updateddoctor from the toggle')
       res.status(200).json(updatedDoctor);
     } catch (error) {
@@ -126,7 +142,7 @@ class AdminController {
   async verifyDoctor(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const verifiedDoctor = await this.AdminService.verifyDoctor(id);
+      const verifiedDoctor = await this._adminService.verifyDoctor(id);
       console.log(verifiedDoctor, 'is there any  problem in this form the verifydoctor of the admin controller')
       res.status(200).json(verifiedDoctor);
     } catch (error) {
@@ -144,7 +160,7 @@ class AdminController {
       const { id } = req.params
       const { reason } = req.body
 
-      await this.AdminService.rejectDoctor(id, reason)
+      await this._adminService.rejectDoctor(id, reason)
 
       res.status(200).json({ message: "Doctor rejected successfully" })
     } catch (error) {
@@ -155,7 +171,7 @@ class AdminController {
 
   async getDashboardMetrics(req: Request, res: Response): Promise<void> {
     try {
-      const metrics = await this.AdminService.getDashboardMetrics();
+      const metrics = await this._adminService.getDashboardMetrics();
       res.status(200).json(metrics);
     } catch (error) {
       console.error('Get Dashboard Metrics Error:', error);
@@ -170,7 +186,7 @@ class AdminController {
   async getAppointmentStats(req: Request, res: Response): Promise<void> {
     try {
       const timeRange = req.query.timeRange as string || 'lastWeek';
-      const stats = await this.AdminService.getAppointmentChartStats(timeRange);
+      const stats = await this._adminService.getAppointmentChartStats(timeRange);
       console.log(stats, 'the stats is comming or not')
       res.status(200).json(stats);
     } catch (error) {
@@ -261,7 +277,7 @@ class AdminController {
 
   async getReviews(req: Request, res: Response): Promise<void> {
     try {
-      const reviews = await this.AdminService.getReviews();
+      const reviews = await this._adminService.getReviews();
       res.status(200).json(reviews);
     } catch (error) {
       console.error('Get Reviews Error:', error);
@@ -275,5 +291,5 @@ class AdminController {
 
 }
 
-export const adminController = new AdminController(new AdminService(userRepository, emailService));
+export default new adminController(new _adminService(_userRepository, _emailService));
 

@@ -1,84 +1,84 @@
-import UserModel from '../Model/userModel';
-import { DoctorAppointment, Review, ReviewAdminside, User, UserRole } from '../Interfaces/user';
-import AppointmentModel from '../Model/appointmentModel';
-import { IUserRepository } from '../Interfaces/iUserRepository';
-import { Appointment, ChartAppointmentStats, DashboardStats } from '../Interfaces/appointment';
-import { Prescription } from '../Interfaces/prescription';
-import PrescriptionModel from '../Model/prescriptionModel';
-import ReviewModel from '../Model/reviewModel';
-import SlotModel from '../Model/slotModel';
+import userModel from '../Model/userModel';
+import { doctorAppointment, review, reviewAdminside, user, userRole } from '../Interfaces/user';
+import appointmentModel from '../Model/appointmentModel';
+import { IuserRepository } from '../Entities/iUserRepository';
+import { appointment, chartAppointmentStats, dashboardStats } from '../Interfaces/appointment';
+import { prescription } from '../Interfaces/prescription';
+import prescriptionModel from '../Model/prescriptionModel';
+import reviewModel from '../Model/reviewModel';
+import slotModel from '../Model/slotModel';
 import mongoose from 'mongoose';
 
 
 
 
-class UserRepository implements IUserRepository {
+class _userRepository implements IuserRepository {
 
-  async createUser(user: User): Promise<User> {
+  async createUser(user: user): Promise<user> {
     console.log(user, 'from the createUser')
-    const newUser = new UserModel(user);
+    const newUser = new userModel(user);
     return newUser.save();
   }
 
-  async findUserByEmail(email: string): Promise<User | null> {
-    return UserModel.findOne({ email });
+  async findUserByEmail(email: string): Promise<user | null> {
+    return userModel.findOne({ email });
   }
 
-  async findUserById(userid: string): Promise<User | null> {
-    return UserModel.findById(userid);
+  async findUserById(userid: string): Promise<user | null> {
+    return userModel.findById(userid);
   }
 
-  async findDoctorById(doctorid: string): Promise<User | null> {
-    return UserModel.findById(doctorid).select('username clinic_name department')
+  async findDoctorById(doctorid: string): Promise<user | null> {
+    return userModel.findById(doctorid).select('username clinic_name department')
   }
 
-  async updateUser(user: User): Promise<User | null> {
-    return UserModel.findByIdAndUpdate(user._id, user, { new: true });
+  async updateUser(user: user): Promise<user | null> {
+    return userModel.findByIdAndUpdate(user._id, user, { new: true });
   }
 
-  async updateUserProfile(userid: string, updateData: Partial<User>): Promise<User | null> {
-    return UserModel.findOneAndUpdate(
+  async updateUserProfile(userid: string, updateData: Partial<user>): Promise<user | null> {
+    return userModel.findOneAndUpdate(
       { _id: userid },
       { $set: updateData },
       { new: true, runValidators: true }
     );
   }
 
-  async findAllUsers(): Promise<User[]> {
-    return UserModel.find();
+  async findAllUsers(): Promise<user[]> {
+    return userModel.find();
   }
 
-  async updateUserStatus(userid: string, is_active: boolean): Promise<User | null> {
-    return UserModel.findOneAndUpdate(
+  async updateUserStatus(userid: string, is_active: boolean): Promise<user | null> {
+    return userModel.findOneAndUpdate(
       { _id: userid },
       { $set: { is_active: is_active } },
       { new: true, runValidators: true }
     );
   }
 
-  async findAllVerifyDoctors(): Promise<User[]> {
-    return UserModel.find({ role: UserRole.DOCTOR, verified: true });
+  async findAllVerifyDoctors(): Promise<user[]> {
+    return userModel.find({ role: userRole.DOCTOR, verified: true });
   }
 
-  async findAllDoctors(): Promise<User[]> {
-    return UserModel.find({ role: UserRole.DOCTOR, verified: false })
+  async findAllDoctors(): Promise<user[]> {
+    return userModel.find({ role: userRole.DOCTOR, verified: false })
   }
 
-  async updateDoctorVerification(doctorid: string, is_verified: boolean): Promise<User | null> {
-    return UserModel.findOneAndUpdate(
+  async updateDoctorVerification(doctorid: string, is_verified: boolean): Promise<user | null> {
+    return userModel.findOneAndUpdate(
       { _id: doctorid },
       { $set: { verified: is_verified } },
       { new: true, runValidators: true }
     );
   }
 
-  async findUsersByRole(userRole: UserRole): Promise<User[]> {
-    return UserModel.find({ role: userRole });
+  async findUsersByRole(userRole: userRole): Promise<user[]> {
+    return userModel.find({ role: userRole });
 
   }
 
   async removeUser(_id: string): Promise<void> {
-    await UserModel.findByIdAndDelete(_id)
+    await userModel.findByIdAndDelete(_id)
   }
 
   async createAppointment(appointmentData: {
@@ -88,21 +88,21 @@ class UserRepository implements IUserRepository {
     payment_id: string;
     status: string;
   }): Promise<any> {
-    const appointment = new AppointmentModel(appointmentData);
+    const appointment = new appointmentModel(appointmentData);
     return appointment.save();
   }
 
   async findAppointmentBySlotId(slotId: string): Promise<any> {
-    return AppointmentModel.findOne({ slot_id: slotId });
+    return appointmentModel.findOne({ slot_id: slotId });
   }
 
   async findAppointmentById(appointmentId: string): Promise<any> {
-    return AppointmentModel.findOne({ _id: appointmentId })
+    return appointmentModel.findOne({ _id: appointmentId })
   }
 
   async findAppointmentsByDoctorId(doctorId: string) {
     try {
-      return await AppointmentModel.find({})
+      return await appointmentModel.find({})
         .populate({
           path: 'slot_id',
           match: { doctor_id: doctorId },
@@ -138,12 +138,12 @@ class UserRepository implements IUserRepository {
   async findPendingAppointmentsByUserId(userId: string, page: number = 1, pageSize: number = 3): Promise<any> {
     const skip = (page - 1) * pageSize;
 
-    const totalCount = await AppointmentModel.countDocuments({
+    const totalCount = await appointmentModel.countDocuments({
       user_id: userId,
       status: 'pending'
     });
 
-    const appointments = await AppointmentModel.find({
+    const appointments = await appointmentModel.find({
       user_id: userId,
       status: 'pending'
     })
@@ -264,10 +264,10 @@ class UserRepository implements IUserRepository {
     }
   
     // Execute and return
-    return AppointmentModel.aggregate(pipeline as any);
+    return appointmentModel.aggregate(pipeline as any);
   }
 
-  async getDashboardStats(): Promise<DashboardStats> {
+  async getDashboardStats(): Promise<dashboardStats> {
     try {
       // Get counts for doctors and users
       const [
@@ -275,9 +275,9 @@ class UserRepository implements IUserRepository {
         totalUsers,
         appointments
       ] = await Promise.all([
-        UserModel.countDocuments({ role: UserRole.DOCTOR }),
-        UserModel.countDocuments({ role: UserRole.PATIENT }),
-        AppointmentModel.find({})
+        userModel.countDocuments({ role: userRole.DOCTOR }),
+        userModel.countDocuments({ role: userRole.PATIENT }),
+        appointmentModel.find({})
       ]);
 
       const totalAppointments = appointments.length;
@@ -313,7 +313,7 @@ class UserRepository implements IUserRepository {
     }
   }
 
-  async getAppointmentChartStats(timeRange: string): Promise<ChartAppointmentStats> {
+  async getAppointmentChartStats(timeRange: string): Promise<chartAppointmentStats> {
     try {
       const now = new Date();
       let startDate: Date;
@@ -343,7 +343,7 @@ class UserRepository implements IUserRepository {
       endDate.setHours(23, 59, 59, 999);
 
       // Fetch slots with correct date range
-      const slots = await SlotModel.aggregate([
+      const slots = await slotModel.aggregate([
         {
           $match: {
             created_at: {
@@ -364,7 +364,7 @@ class UserRepository implements IUserRepository {
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       };
 
-      let result: ChartAppointmentStats = { daily: [], weekly: [], yearly: [] };
+      let result: chartAppointmentStats = { daily: [], weekly: [], yearly: [] };
 
       // Generate date range
       const days: Date[] = [];
@@ -442,7 +442,7 @@ class UserRepository implements IUserRepository {
 
   async findAppointmentWithSlot(appointmentId: string): Promise<any> {
     try {
-      const appointment = await AppointmentModel.findOne({ _id: appointmentId })
+      const appointment = await appointmentModel.findOne({ _id: appointmentId })
         .populate({
           path: 'slot_id',
           select: 'date start_time end_time doctor_id'
@@ -468,7 +468,7 @@ class UserRepository implements IUserRepository {
     search: string = "",
     department: string = ""
   ): Promise<{
-    doctors: User[];
+    doctors: user[];
     totalDoctors: number;
     totalPages: number;
     currentPage: number;
@@ -476,7 +476,7 @@ class UserRepository implements IUserRepository {
   }> {
     try {
       // Build the query
-      let query: any = { role: UserRole.DOCTOR, verified: true };
+      let query: any = { role: userRole.DOCTOR, verified: true };
 
       if (search) {
         query = {
@@ -497,12 +497,12 @@ class UserRepository implements IUserRepository {
 
       // Execute queries in parallel for better performance
       const [doctors, totalDoctors, departments] = await Promise.all([
-        UserModel.find(query)
+        userModel.find(query)
           .skip(skip)
           .limit(limit)
           .sort({ createdAt: -1 }),
-        UserModel.countDocuments(query),
-        UserModel.distinct('department', { role: UserRole.DOCTOR, verified: true })
+        userModel.countDocuments(query),
+        userModel.distinct('department', { role: userRole.DOCTOR, verified: true })
       ]);
 
       return {
@@ -518,10 +518,10 @@ class UserRepository implements IUserRepository {
     }
   }
 
-  async createPrescription(prescriptionData: Prescription): Promise<Prescription> {
+  async createPrescription(prescriptionData: prescription): Promise<prescription> {
     try {
       // Create a new prescription document
-      const newPrescription = new PrescriptionModel(prescriptionData);
+      const newPrescription = new prescriptionModel(prescriptionData);
 
       // Save the prescription to the database
       const savedPrescription = await newPrescription.save();
@@ -535,7 +535,7 @@ class UserRepository implements IUserRepository {
 
   async updateAppointment(appointmentId: string, status: string): Promise<any> {
     try {
-      const updatedAppointment = await AppointmentModel.findByIdAndUpdate(
+      const updatedAppointment = await appointmentModel.findByIdAndUpdate(
         appointmentId,
         {
           status: status,
@@ -559,7 +559,7 @@ class UserRepository implements IUserRepository {
   async getPrescriptions(appointmentId: string): Promise<any> {
     try {
       // First, find the prescription by appointment ID
-      const prescriptions = await PrescriptionModel
+      const prescriptions = await prescriptionModel
         .find({ appointment_id: appointmentId })
         .lean();
   
@@ -568,7 +568,7 @@ class UserRepository implements IUserRepository {
       }
   
       // Get the appointment details to find related user and doctor info
-      const appointment = await AppointmentModel
+      const appointment = await appointmentModel
         .findById(appointmentId)
         .lean();
   
@@ -577,13 +577,13 @@ class UserRepository implements IUserRepository {
       }
   
       // Get user details from appointment
-      const patient = await UserModel.findById(appointment.user_id).lean();
+      const patient = await userModel.findById(appointment.user_id).lean();
   
       // Get slot details to find doctor
-      const slot = await SlotModel.findById(appointment.slot_id).lean();
+      const slot = await slotModel.findById(appointment.slot_id).lean();
       
       // Get doctor details from slot
-      const doctor = slot ? await UserModel.findById(slot.doctor_id).lean() : null;
+      const doctor = slot ? await userModel.findById(slot.doctor_id).lean() : null;
   
       // Enhance prescription with user and doctor details
       const enhancedPrescriptions = prescriptions.map(prescription => ({
@@ -619,7 +619,7 @@ class UserRepository implements IUserRepository {
         throw new Error('Rating must be between 1 and 5');
       }
 
-      const review = new ReviewModel({
+      const review = new reviewModel({
         appointmentId: appointmentid,
         rating,
         reviewText,
@@ -636,10 +636,10 @@ class UserRepository implements IUserRepository {
     }
   }
 
-  async getAllReviews(): Promise<ReviewAdminside[]> {
+  async getAllReviews(): Promise<reviewAdminside[]> {
     try {
       // Fetch all reviews from the database with nested population
-      const reviews = await ReviewModel.find()
+      const reviews = await reviewModel.find()
         .populate({
           path: 'appointmentId',
           populate: {
@@ -659,7 +659,7 @@ class UserRepository implements IUserRepository {
         // Extract doctor info from the populated fields
         const slot = (doc.appointmentId as any)?.slot_id || {};
         const doctorInfo = slot.doctor_id || {};
-        const patientInfo = doc.userId as unknown as User || {};
+        const patientInfo = doc.userId as unknown as user || {};
 
         // Create the review object according to the interface
         return {
@@ -672,7 +672,7 @@ class UserRepository implements IUserRepository {
           rating: doc.rating,
           reviewText: doc.reviewText,
           createdAt: doc.createdAt
-        } as unknown as ReviewAdminside;
+        } as unknown as reviewAdminside;
       });
     } catch (error) {
       console.error('Error in getAllReviews:', error);
@@ -686,7 +686,7 @@ class UserRepository implements IUserRepository {
     const [statsData, reviewsData, revenueData] = await Promise.all([
 
       // Stats Aggregation
-      AppointmentModel.aggregate([
+      appointmentModel.aggregate([
         {
           $lookup: {
             from: 'slots',
@@ -713,7 +713,7 @@ class UserRepository implements IUserRepository {
       ]),
 
       // Review Aggregation
-      ReviewModel.aggregate([
+      reviewModel.aggregate([
         {
           $lookup: {
             from: 'appointments',
@@ -754,7 +754,7 @@ class UserRepository implements IUserRepository {
       ]),
 
       // Revenue Aggregation
-      AppointmentModel.aggregate([
+      appointmentModel.aggregate([
         {
           $lookup: {
             from: 'slots',
@@ -793,6 +793,6 @@ class UserRepository implements IUserRepository {
 
 }
 
-export const userRepository = new UserRepository();
+export default new _userRepository();
 
 

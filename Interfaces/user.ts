@@ -1,12 +1,12 @@
 import { Types } from 'mongoose';
 
-export enum UserRole {
+export enum userRole {
   ADMIN = 'admin',
   DOCTOR = 'doctor',
   PATIENT = 'patient',
 }
 
-export interface User {
+export interface user {
   _id?: Types.ObjectId | string;
   username: string;
   email: string;
@@ -17,7 +17,7 @@ export interface User {
   is_active?: boolean;
   gender?: string;
   address?: string;
-  role: UserRole;
+  role: userRole;
   location?: string;
   clinic_name?: string;
   about?: string;
@@ -33,29 +33,29 @@ export interface User {
   otp_expiration?: Date | null;
 }
 
-export interface SignupResponse {
+export interface signupResponse {
   message: string;
   userId: string
   username: string;
   email: string;
-  role: UserRole;
+  role: userRole;
 }
 
-export interface SignupRequest {
+export interface signupRequest {
   username: string;
   email: string;
   password: string;
-  role: UserRole;
+  role: userRole;
   _id: string;
 }
 
-export interface LoginResponse {
+export interface loginResponse {
   accessToken: string;
   refreshToken: string;
   username: string;
   email: string;
   isActive?: boolean;
-  role: UserRole;
+  role: userRole;
   _id?: string;
   gender?: string;
   profile_pic?: string;
@@ -72,7 +72,7 @@ export interface LoginResponse {
 
 }
 
-export interface DoctorDetails {
+export interface doctorDetails {
   certification?: string;
   department?: string;
   education?: string;
@@ -82,13 +82,13 @@ export interface DoctorDetails {
   medical_license?: string;
 }
 
-export interface DoctorLoginResponse {
+export interface doctorLoginResponse {
   accessToken: string;
   refreshToken: string;
   username: string;
   email: string;
   isActive: boolean;
-  role: UserRole.DOCTOR;
+  role: userRole.DOCTOR;
   _id: string;
   profile_pic?: string;
   phone?: number;
@@ -104,29 +104,29 @@ export interface DoctorLoginResponse {
   medical_license?: string;
 }
 
-export interface DoctorSignupRequest {
+export interface doctorSignupRequest {
   username: string;
   email: string;
   password: string;
-  role: UserRole.DOCTOR;
+  role: userRole.DOCTOR;
 }
 
-export interface DoctorSignupResponse {
+export interface doctorSignupResponse {
   message: string;
   userId: string;
   username: string;
   email: string;
-  role: UserRole;
+  role: userRole;
 }
 
-export interface DoctorSlotRequest {
+export interface doctorSlotRequest {
   doctor_id: string | Types.ObjectId;
   day: any;
   start_time: string;
   end_time: string;
 }
 
-export interface DoctorAppointment {
+export interface doctorAppointment {
   _id?: any;
   doctor_id?: any;
   patient_id?: any;
@@ -141,25 +141,25 @@ export interface DoctorAppointment {
   updated_at?: string;
 }
 
-export interface OtpResponse {
+export interface otpResponse {
   message: string;
 }
 
-export interface PasswordResetRequest {
+export interface passwordResetRequest {
   oldPassword: string;
   newPassword: string;
 }
 
-export interface AdminLoginResponse {
+export interface adminLoginResponse {
   accessToken: string;
   refreshToken: string;
   username: string;
   email: string;
-  role: UserRole;
+  role: userRole;
   isActive: boolean;
 }
 
-export interface Review {
+export interface review {
   appointmentId: string | Types.ObjectId;
   rating: number;
   reviewText: string;
@@ -168,7 +168,7 @@ export interface Review {
   updatedAt?: Date;
 }
 
-export interface ReviewResponse {
+export interface reviewResponse {
   message: string;
   reviewId: string;
   appointmentId: string;
@@ -178,7 +178,7 @@ export interface ReviewResponse {
   createdAt: Date;
 }
 
-export interface ReviewAdminside {
+export interface reviewAdminside {
   _id: string
   appointmentId: string  // Reference to the appointment
   doctorName: string
@@ -192,7 +192,7 @@ export interface ReviewAdminside {
   createdAt: string
 }
 
-export interface DashboardResponseType {
+export interface dashboardResponseType {
   stats: {
     totalAppointments: number;
     totalPatients: number;

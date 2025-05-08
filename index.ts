@@ -21,7 +21,7 @@ connectDB();
 
 app.use(cors({
     origin: process.env.FRONTEND_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],     
+    methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'],     
     credentials: true,
 }));
 
@@ -38,10 +38,10 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use("/user", userRoutes);
-app.use("/doctor", doctorRoute);
-app.use("/admin", adminRoute);
-app.use("/chat", conversationRoute);
+app.use("/user/api", userRoutes);
+app.use("/doctor/api", doctorRoute);
+app.use("/admin/api", adminRoute);
+app.use("/chat/api", conversationRoute);
 
 
 

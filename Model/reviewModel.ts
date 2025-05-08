@@ -1,7 +1,7 @@
-import { Review } from '../Interfaces/user';
+import { review } from '../Interfaces/user';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-const ReviewSchema: Schema<Review> = new Schema({
+const ReviewSchema: Schema<review> = new Schema({
   appointmentId: {
     type: Schema.Types.ObjectId,
     required: true,
@@ -28,6 +28,6 @@ const ReviewSchema: Schema<Review> = new Schema({
 });
 
 
-const ReviewModel: Model<Review> = mongoose.model<Review>('Review', ReviewSchema);
+const reviewModel: Model<review> = mongoose.model<review>('Review', ReviewSchema);
 
-export default ReviewModel;
+export default reviewModel;

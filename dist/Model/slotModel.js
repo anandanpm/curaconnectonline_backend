@@ -43,5 +43,5 @@ const slotSchema = new mongoose_1.Schema({
     created_at: { type: Date, default: Date.now },
     updated_at: { type: Date, default: Date.now },
 });
-const SlotModel = mongoose_1.default.model('Slot', slotSchema);
-exports.default = SlotModel;
+const slotModel = mongoose_1.default.model('Slot', slotSchema);
+exports.default = slotModel;

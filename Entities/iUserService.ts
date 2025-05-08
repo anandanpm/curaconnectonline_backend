@@ -1,51 +1,51 @@
-import { User, LoginResponse, SignupResponse } from './user';
-import { AppointmentDetails, AppointmentData, RefundResponse, AppointmentResponse } from './appointment';
-import { Slot } from './slot';
-import { Prescription } from './prescription';
+import { user, loginResponse, signupResponse } from '../Interfaces/user';
+import { appointmentDetails, appointmentData, refundResponse, appointmentResponse } from '../Interfaces/appointment';
+import { slot } from '../Interfaces/slot';
+import { prescription } from '../Interfaces/prescription';
 
 
-export interface IUserService {
+export interface IuserService {
   findUserById(userId: any): unknown;
 
-  signup(username: string, email: string, password: string): Promise<SignupResponse>;
+  signup(username: string, email: string, password: string): Promise<signupResponse>;
 
   verifyOtp(email: string, otp: string): Promise<{
     message: string;
   }>;
 
-  login(email: string, password: string): Promise<LoginResponse>;
+  login(email: string, password: string): Promise<loginResponse>;
 
   resendOtp(email: string): Promise<{
     message: string;
   }>;
 
-  googleAuth(token: string): Promise<LoginResponse>;
+  googleAuth(token: string): Promise<loginResponse>;
 
-  profile(userdetails: User): Promise<User>;
+  profile(userdetails: user): Promise<user>;
 
 
   getDoctors(page: number, limit: number, search: string, department: string): Promise<{
-    doctors: User[];
+    doctors: user[];
     totalDoctors: number;
     totalPages: number;
     currentPage: number;
     departments: string[];
   }>;
 
-  getDoctorSlots(doctorId: string): Promise<Slot[]>;
+  getDoctorSlots(doctorId: string): Promise<slot[]>;
 
   createPaymentIntent(amount: number): Promise<string | null>;
 
-  createAppointment(appointmentData: AppointmentData): Promise<AppointmentResponse>;
+  createAppointment(appointmentData: appointmentData): Promise<appointmentResponse>;
 
   getAppointmentDetails(userId: string, page: number, pageSize: number): Promise<{
-    appointments: AppointmentDetails[];
+    appointments: appointmentDetails[];
     totalCount: number;
     totalPages: number;
     currentPage: number;
   }>;
 
-  refundPayment(appointmentId: string): Promise<RefundResponse>;
+  refundPayment(appointmentId: string): Promise<refundResponse>;
 
   getcancelandcompleteAppointmentDetails(
     userId: string,
@@ -53,7 +53,7 @@ export interface IUserService {
     limit?: number,
     status?: string
   ): Promise<{
-    appointments: AppointmentDetails[];
+    appointments: appointmentDetails[];
     totalCount: number;
     totalPages: number;
   }>;
@@ -74,7 +74,7 @@ export interface IUserService {
   resetForgottenpassword(email: string, password: string): Promise<{
     message: string;
   }>;
-  getPrescriptions(appointmentId: string): Promise<Prescription[]>
+  getPrescriptions(appointmentId: string): Promise<prescription[]>
 
   reviews(appointmentid: string, rating: number, reviewText: string, userid: string): Promise<{ message: string }>;
 }

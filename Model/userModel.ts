@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { User, UserRole } from "../Interfaces/user";
+import { user, userRole } from "../Interfaces/user";
 
-const userSchema = new Schema<User>({
+const userSchema = new Schema<user>({
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   phone: { type: Number, default: null },
@@ -11,7 +11,7 @@ const userSchema = new Schema<User>({
   is_active: { type: Boolean, default: false },
   gender: { type: String, default: null },
   address: { type: String, default: null },
-  role: { type: String, enum: Object.values(UserRole), default: UserRole.PATIENT },
+  role: { type: String, enum: Object.values(userRole), default: userRole.PATIENT },
   location: { type: String, default: null },
   clinic_name: { type: String, default: null },
   about: { type: String, default: null },
@@ -27,5 +27,5 @@ const userSchema = new Schema<User>({
   otp_expiration: { type: Date || null },
 });
 
-const UserModel = mongoose.model<User>('User', userSchema);
-export default UserModel;
+const userModel = mongoose.model<user>('User', userSchema);
+export default userModel;

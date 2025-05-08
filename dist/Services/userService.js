@@ -3,32 +3,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userService = exports.UserService = void 0;
+exports._userService = void 0;
 const user_1 = require("../Interfaces/user");
-const otpService_1 = require("./otpService");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const google_auth_library_1 = require("google-auth-library");
 const dotenv_1 = __importDefault(require("dotenv"));
-const slotRepository_1 = require("../Repository/slotRepository");
 const stripe_1 = __importDefault(require("stripe"));
 const slotModel_1 = __importDefault(require("../Model/slotModel"));
-const emailService_1 = require("./emailService");
-const userRepository_1 = require("../Repository/userRepository");
+const emailService_1 = __importDefault(require("./emailService"));
 dotenv_1.default.config();
 const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const stripe = new stripe_1.default(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2025-01-27.acacia",
 });
-class UserService {
-    constructor(userRepository, slotRepository, OtpService) {
-        this.userRepository = userRepository;
-        this.slotRepository = slotRepository;
-        this.OtpService = OtpService;
+class _userService {
+    constructor(_userRepository, _slotRepository, _otpService) {
+        this._userRepository = _userRepository;
+        this._slotRepository = _slotRepository;
+        this._otpService = _otpService;
     }
     async findUserById(userId) {
         try {
-            const user = await this.userRepository.findUserById(userId);
+            const user = await this._userRepository.findUserById(userId);
             return user;
         }
         catch (error) {
@@ -36,36 +33,36 @@ class UserService {
         }
     }
     async signup(username, email, password) {
-        const existingUser = await this.userRepository.findUserByEmail(email);
+        const existingUser = await this._userRepository.findUserByEmail(email);
         if (existingUser) {
             throw new Error('Email is already exists');
         }
         const hashedPassword = await bcrypt_1.default.hash(password, 10);
-        const otp = this.OtpService.generateOTP();
+        const otp = this._otpService.generateOTP();
         console.log(otp, 'the otp is comming for the user');
-        const otpExpiration = this.OtpService.generateOtpExpiration();
-        const newUser = { username, email, password: hashedPassword, otp, otp_expiration: otpExpiration, role: user_1.UserRole.PATIENT };
-        let createdUser = await this.userRepository.createUser(newUser);
+        const otpExpiration = this._otpService.generateOtpExpiration();
+        const newUser = { username, email, password: hashedPassword, otp, otp_expiration: otpExpiration, role: user_1.userRole.PATIENT };
+        let createdUser = await this._userRepository.createUser(newUser);
         if (!createdUser) {
-            throw new Error('User not created');
+            throw new Error('user not created');
         }
-        const emailSent = await this.OtpService.sendOTPEmail(email, otp);
+        const emailSent = await this._otpService.sendOTPEmail(email, otp);
         if (!emailSent) {
-            createdUser = await this.userRepository.updateUser({ ...createdUser, otp: null, otp_expiration: null });
+            createdUser = await this._userRepository.updateUser({ ...createdUser, otp: null, otp_expiration: null });
             throw new Error('Failed to send OTP email');
         }
         return { message: "Otp send successfully", userId: createdUser._id, username: createdUser.username, email: createdUser.email, role: createdUser.role };
     }
     async verifyOtp(email, otp) {
-        const user = await this.userRepository.findUserByEmail(email);
+        const user = await this._userRepository.findUserByEmail(email);
         if (!user || !user.otp || !user.otp_expiration) {
             throw new Error('Invalid OTP or user not found');
         }
-        if (this.OtpService.validateOTP(user.otp, user.otp_expiration, otp)) {
+        if (this._otpService.validateOTP(user.otp, user.otp_expiration, otp)) {
             user.is_active = true;
             user.otp = null;
             user.otp_expiration = null;
-            await this.userRepository.updateUser(user);
+            await this._userRepository.updateUser(user);
             return { message: 'Signup successful' };
         }
         else {
@@ -74,14 +71,14 @@ class UserService {
     }
     async login(email, password) {
         try {
-            const user = await this.userRepository.findUserByEmail(email);
+            const user = await this._userRepository.findUserByEmail(email);
             if (!user) {
                 throw new Error('Email is incorrect');
             }
             if (user.is_active === false) {
-                throw new Error('User is Blocked');
+                throw new Error('user is Blocked');
             }
-            if (user.role !== user_1.UserRole.PATIENT) {
+            if (user.role !== user_1.userRole.PATIENT) {
                 throw new Error('Only patient can login here');
             }
             const passwordMatch = await bcrypt_1.default.compare(password, user.password);
@@ -108,25 +105,25 @@ class UserService {
     }
     async resendOtp(email) {
         try {
-            const user = await this.userRepository.findUserByEmail(email);
+            const user = await this._userRepository.findUserByEmail(email);
             if (!user) {
-                throw new Error('User not found');
+                throw new Error('user not found');
             }
             if (user.is_active) {
-                return { message: 'User is already verified' };
+                return { message: 'user is already verified' };
             }
-            const otp = this.OtpService.generateOTP();
-            const otpExpiration = this.OtpService.generateOtpExpiration();
+            const otp = this._otpService.generateOTP();
+            const otpExpiration = this._otpService.generateOtpExpiration();
             user.otp = otp;
             user.otp_expiration = otpExpiration;
-            const updatedUser = await this.userRepository.updateUser(user);
+            const updatedUser = await this._userRepository.updateUser(user);
             if (!updatedUser)
-                throw new Error("User not updated");
-            const emailSent = await this.OtpService.sendOTPEmail(email, otp);
+                throw new Error("user not updated");
+            const emailSent = await this._otpService.sendOTPEmail(email, otp);
             if (!emailSent) {
                 user.otp = null;
                 user.otp_expiration = null;
-                await this.userRepository.updateUser(user);
+                await this._userRepository.updateUser(user);
                 throw new Error('Failed to send OTP email');
             }
             return { message: 'New OTP sent successfully' };
@@ -145,19 +142,19 @@ class UserService {
             if (!payload || !payload.email) {
                 throw new Error('Invalid Google token');
             }
-            let user = await this.userRepository.findUserByEmail(payload.email);
+            let user = await this._userRepository.findUserByEmail(payload.email);
             if (!user) {
                 // Create a new user if they don't exist
                 const newUser = {
                     username: payload.name || '',
                     email: payload.email,
                     password: undefined,
-                    role: user_1.UserRole.PATIENT,
+                    role: user_1.userRole.PATIENT,
                     is_active: true // 
                 };
-                user = await this.userRepository.createUser(newUser);
+                user = await this._userRepository.createUser(newUser);
             }
-            if (user.role !== user_1.UserRole.PATIENT) {
+            if (user.role !== user_1.userRole.PATIENT) {
                 throw new Error('Only patient can login here');
             }
             const accessToken = jsonwebtoken_1.default.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET || 'your_default_secret', { expiresIn: '15m' });
@@ -194,9 +191,9 @@ class UserService {
                     delete updateData[typedKey];
                 }
             });
-            const updatedUser = await this.userRepository.updateUserProfile(_id.toString(), updateData);
+            const updatedUser = await this._userRepository.updateUserProfile(_id.toString(), updateData);
             if (!updatedUser) {
-                throw new Error('User not found or update failed');
+                throw new Error('user not found or update failed');
             }
             return updatedUser;
         }
@@ -207,7 +204,7 @@ class UserService {
     }
     async getDoctors(page = 1, limit = 6, search = "", department = "") {
         try {
-            return await this.userRepository.findVerifiedDoctorsWithFilters(page, limit, search, department);
+            return await this._userRepository.findVerifiedDoctorsWithFilters(page, limit, search, department);
         }
         catch (error) {
             console.error('Error fetching doctors with filters:', error);
@@ -216,13 +213,13 @@ class UserService {
     }
     async getDoctorSlots(doctorId) {
         try {
-            const doctor = await this.userRepository.findUserById(doctorId);
-            if (!doctor || doctor.role !== user_1.UserRole.DOCTOR) {
+            const doctor = await this._userRepository.findUserById(doctorId);
+            if (!doctor || doctor.role !== user_1.userRole.DOCTOR) {
                 throw new Error("Doctor not found");
             }
             const currentDate = new Date();
-            // await this.slotRepository.deletePastSlots(doctorId,currentDate)
-            return this.slotRepository.getSlotsByDoctorId(doctorId);
+            // await this._slotRepository.deletePastSlots(doctorId,currentDate)
+            return this._slotRepository.getSlotsByDoctorId(doctorId);
         }
         catch (error) {
             console.error("Error fetching doctor slots:", error);
@@ -245,20 +242,20 @@ class UserService {
     }
     async createAppointment(appointmentData) {
         try {
-            const appointment = await this.userRepository.createAppointment(appointmentData);
-            const updatedSlot = await this.slotRepository.updateSlotStatus(appointmentData.slot_id, "booked");
-            const slot = await this.slotRepository.getSlotsById(appointmentData.slot_id);
+            const appointment = await this._userRepository.createAppointment(appointmentData);
+            const updatedSlot = await this._slotRepository.updateSlotStatus(appointmentData.slot_id, "booked");
+            const slot = await this._slotRepository.getSlotsById(appointmentData.slot_id);
             if (!slot) {
                 throw new Error("Slot not found");
             }
-            const doctor = await this.userRepository.findDoctorById(slot.doctor_id.toString());
+            const doctor = await this._userRepository.findDoctorById(slot.doctor_id.toString());
             if (!doctor) {
                 throw new Error("Doctor not found");
             }
             if (!updatedSlot) {
                 throw new Error("Failed to update slot status");
             }
-            const patient = await this.userRepository.findUserById(appointmentData.user_id);
+            const patient = await this._userRepository.findUserById(appointmentData.user_id);
             if (!patient || !patient.email) {
                 throw new Error("Patient information not found");
             }
@@ -273,7 +270,7 @@ class UserService {
                 amount: appointmentData.amount,
                 status: appointmentData.status,
             };
-            const emailSent = await emailService_1.emailService.sendAppointmentConfirmation(patient.email, appointmentDetails);
+            const emailSent = await emailService_1.default.sendAppointmentConfirmation(patient.email, appointmentDetails);
             if (!emailSent) {
                 console.warn("Failed to send appointment confirmation email");
             }
@@ -295,7 +292,7 @@ class UserService {
     }
     async getAppointmentDetails(userId, page = 1, pageSize = 3) {
         try {
-            const { appointments: appointmentDetails, totalCount } = await this.userRepository.findPendingAppointmentsByUserId(userId, page, pageSize);
+            const { appointments: appointmentDetails, totalCount } = await this._userRepository.findPendingAppointmentsByUserId(userId, page, pageSize);
             // Calculate total pages
             const totalPages = Math.ceil(totalCount / pageSize);
             // If no appointments, return empty result with pagination metadata
@@ -339,7 +336,7 @@ class UserService {
     }
     async refundPayment(appointmentId) {
         try {
-            const appointment = await this.userRepository.findAppointmentById(appointmentId);
+            const appointment = await this._userRepository.findAppointmentById(appointmentId);
             if (!appointment) {
                 throw new Error('Appointment not found');
             }
@@ -376,14 +373,14 @@ class UserService {
     async getcancelandcompleteAppointmentDetails(userId, page = 1, limit = 3, status) {
         try {
             // Get all appointments for counting and pagination
-            const allAppointments = await this.userRepository.findcancelandcompleteAppointmentsByUserId(userId, status);
+            const allAppointments = await this._userRepository.findcancelandcompleteAppointmentsByUserId(userId, status);
             // Calculate pagination values
             const totalCount = allAppointments.length;
             const totalPages = Math.ceil(totalCount / limit);
             const startIndex = (page - 1) * limit;
             const endIndex = startIndex + limit;
             // Get paginated appointments
-            const paginatedAppointments = await this.userRepository.findcancelandcompleteAppointmentsByUserId(userId, status, startIndex, limit);
+            const paginatedAppointments = await this._userRepository.findcancelandcompleteAppointmentsByUserId(userId, status, startIndex, limit);
             // Transform appointments
             const formattedAppointments = paginatedAppointments.map(appointment => ({
                 date: appointment.slot_id?.day ? new Date(appointment.slot_id.day) : new Date(),
@@ -416,9 +413,9 @@ class UserService {
     }
     async resetPassword(userId, oldPassword, newPassword) {
         try {
-            const user = await this.userRepository.findUserById(userId);
+            const user = await this._userRepository.findUserById(userId);
             if (!user) {
-                throw new Error('User not found');
+                throw new Error('user not found');
             }
             const passwordMatch = await bcrypt_1.default.compare(oldPassword, user.password);
             if (!passwordMatch) {
@@ -426,7 +423,7 @@ class UserService {
             }
             const hashedPassword = await bcrypt_1.default.hash(newPassword, 10);
             user.password = hashedPassword;
-            await this.userRepository.updateUser(user);
+            await this._userRepository.updateUser(user);
             return { message: 'Password updated successfully' };
         }
         catch (error) {
@@ -436,20 +433,20 @@ class UserService {
     }
     async sendForgottenpassword(email) {
         try {
-            const user = await this.userRepository.findUserByEmail(email);
+            const user = await this._userRepository.findUserByEmail(email);
             if (!user) {
-                throw new Error('User not found');
+                throw new Error('user not found');
             }
-            const otp = this.OtpService.generateOTP();
-            const otpExpiration = this.OtpService.generateOtpExpiration();
+            const otp = this._otpService.generateOTP();
+            const otpExpiration = this._otpService.generateOtpExpiration();
             user.otp = otp;
             user.otp_expiration = otpExpiration;
-            await this.userRepository.updateUser(user);
-            const emailSent = await this.OtpService.sendOTPEmail(email, otp);
+            await this._userRepository.updateUser(user);
+            const emailSent = await this._otpService.sendOTPEmail(email, otp);
             if (!emailSent) {
                 user.otp = null;
                 user.otp_expiration = null;
-                await this.userRepository.updateUser(user);
+                await this._userRepository.updateUser(user);
                 throw new Error('Failed to send OTP email');
             }
             return { message: 'New OTP sent successfully' };
@@ -461,14 +458,14 @@ class UserService {
     }
     async verifyForgottenpassword(email, otpString) {
         try {
-            const user = await this.userRepository.findUserByEmail(email);
+            const user = await this._userRepository.findUserByEmail(email);
             if (!user || !user.otp || !user.otp_expiration) {
                 throw new Error('Invalid OTP or user not found');
             }
-            if (this.OtpService.validateOTP(user.otp, user.otp_expiration, otpString)) {
+            if (this._otpService.validateOTP(user.otp, user.otp_expiration, otpString)) {
                 user.otp = null;
                 user.otp_expiration = null;
-                await this.userRepository.updateUser(user);
+                await this._userRepository.updateUser(user);
                 return { message: 'Otp verified successfully' };
             }
             else {
@@ -482,13 +479,13 @@ class UserService {
     }
     async resetForgottenpassword(email, password) {
         try {
-            const user = await this.userRepository.findUserByEmail(email);
+            const user = await this._userRepository.findUserByEmail(email);
             if (!user) {
-                throw new Error('User not found');
+                throw new Error('user not found');
             }
             const hashedPassword = await bcrypt_1.default.hash(password, 10);
             user.password = hashedPassword;
-            await this.userRepository.updateUser(user);
+            await this._userRepository.updateUser(user);
             return { message: 'Password updated successfully' };
         }
         catch (error) {
@@ -498,7 +495,7 @@ class UserService {
     }
     async getPrescriptions(appointmentId) {
         try {
-            const prescriptions = await this.userRepository.getPrescriptions(appointmentId);
+            const prescriptions = await this._userRepository.getPrescriptions(appointmentId);
             return prescriptions;
         }
         catch (error) {
@@ -508,7 +505,7 @@ class UserService {
     }
     async reviews(appointmentid, rating, reviewText, userid) {
         try {
-            await this.userRepository.createReview(appointmentid, rating, reviewText, userid);
+            await this._userRepository.createReview(appointmentid, rating, reviewText, userid);
             return { message: 'review is uploaded successfully' };
         }
         catch (error) {
@@ -517,5 +514,4 @@ class UserService {
         }
     }
 }
-exports.UserService = UserService;
-exports.userService = new UserService(userRepository_1.userRepository, slotRepository_1.slotRepository, otpService_1.otpService);
+exports._userService = _userService;

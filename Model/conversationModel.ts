@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { Conversation, Message } from '../Interfaces/conversation';
+import { conversation, message } from '../Interfaces/conversation';
 
-const messageSchema = new Schema<Message>({
+const messageSchema = new Schema<message>({
   text: {
     type: String
   },
@@ -20,7 +20,7 @@ const messageSchema = new Schema<Message>({
   }
 });
 
-const conversationSchema = new Schema<Conversation>(
+const conversationSchema = new Schema<conversation>(
   {
     sender: {
       type: Schema.Types.ObjectId,
@@ -39,6 +39,6 @@ const conversationSchema = new Schema<Conversation>(
   }
 );
 
-const ConversationModel = mongoose.model<Conversation>('Conversation', conversationSchema);
+const conversationModel = mongoose.model<conversation>('Conversation', conversationSchema);
 
-export default ConversationModel;
+export default conversationModel;

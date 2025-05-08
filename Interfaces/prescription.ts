@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 
-export interface Medicine {
+export interface medicine {
   name: string;
   dosage: string;
   frequency: {
@@ -13,10 +13,10 @@ export interface Medicine {
   instructions?: string;
 }
 
-export interface Prescription {
+export interface prescription {
   _id?: Types.ObjectId;
   appointment_id: Types.ObjectId | string;
-  medicines: Medicine[];
+  medicines: medicine[];
   notes?: string;
   created_at?: Date;
   updated_at?: Date;

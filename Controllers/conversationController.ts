@@ -1,17 +1,17 @@
 import { Request, Response } from "express";
-import { ConversationService } from "../Services/conversationService";
-import { IConversationService } from "../Interfaces/iConversationService";
-import { conversationRepository } from "../Repository/conversationRepository";
+import {_conversationService } from "../Services/conversationService";
+import { IconversationService } from "../Entities/iConversationService";
+import  conversationRepository  from "../Repository/conversationRepository";
 
-class ConversationController {
-    constructor(private conversationService: IConversationService) { }
+class conversationController {
+    constructor(private _conversationService: IconversationService) { }
 
 
     async sendMessage(req: Request, res: Response) {
         try {
             const { sender, receiver, text } = req.body;
             console.log(sender, receiver, text)
-            const conversation = await this.conversationService.sendMessage(sender, receiver, text);
+            const conversation = await this._conversationService.sendMessage(sender, receiver, text);
             console.log(conversation, 'this is the conversation')
             res.status(200).json(conversation);
         } catch (error) {
@@ -22,7 +22,7 @@ class ConversationController {
     async getMessages(req: Request, res: Response) {
         try {
             const { sender, receiver } = req.query;
-            const messages = await this.conversationService.getMessages(sender as string, receiver as string);
+            const messages = await this._conversationService.getMessages(sender as string, receiver as string);
             console.log(messages, 'this is the messages ')
             res.status(200).json(messages);
         } catch (error) {
@@ -32,4 +32,4 @@ class ConversationController {
 }
 
 
-export const conversationController = new ConversationController(new ConversationService(conversationRepository));
+export default new conversationController(new _conversationService(conversationRepository));

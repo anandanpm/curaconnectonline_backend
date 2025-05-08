@@ -3,20 +3,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userController = void 0;
 const userService_1 = require("../Services/userService");
-const userRepository_1 = require("../Repository/userRepository");
-const otpService_1 = require("../Services/otpService");
-const slotRepository_1 = require("../Repository/slotRepository");
+const userRepository_1 = __importDefault(require("../Repository/userRepository"));
+const otpService_1 = __importDefault(require("../Services/otpService"));
+const slotRepository_1 = __importDefault(require("../Repository/slotRepository"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-class UserController {
-    constructor(UserService) {
-        this.UserService = UserService;
+class userController {
+    constructor(_userService) {
+        this._userService = _userService;
     }
     async getOtp(req, res) {
         try {
             const { email, password, username } = req.body;
-            const result = await this.UserService.signup(username, email, password);
+            const result = await this._userService.signup(username, email, password);
             res.status(200).json(result);
         }
         catch (error) {
@@ -28,7 +27,7 @@ class UserController {
         try {
             const { email, otpString } = req.body;
             console.log(email);
-            const result = await this.UserService.verifyOtp(email, otpString);
+            const result = await this._userService.verifyOtp(email, otpString);
             res.status(200).json(result);
         }
         catch (error) {
@@ -45,7 +44,7 @@ class UserController {
                 res.status(400).json({ message: 'Email is required' });
                 return;
             }
-            const result = await this.UserService.resendOtp(email);
+            const result = await this._userService.resendOtp(email);
             res.status(200).json(result);
         }
         catch (error) {
@@ -57,17 +56,31 @@ class UserController {
         try {
             const { Email, password } = req.body;
             console.log(req.body);
-            const { accessToken, refreshToken, username, email, role, isActive, _id, gender, profile_pic, phone, age, address } = await this.UserService.login(Email, password);
+            const { accessToken, refreshToken, username, email, role, isActive, _id, gender, profile_pic, phone, age, address } = await this._userService.login(Email, password);
             // Fix: Include httpOnly option and fix sameSite settings
+            // res.cookie('accessToken', accessToken, {
+            //   httpOnly: true,
+            //   secure: true, // Required for HTTPS
+            //   sameSite: 'none', // Required for cross-site cookies
+            //   maxAge: 24 * 60 * 60 * 1000, // 1 day
+            // });
+            // res.cookie('refreshToken', refreshToken, {
+            //   httpOnly: true,
+            //   secure: true,
+            //   sameSite: 'none',
+            //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            // });
             res.cookie('accessToken', accessToken, {
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 15 * 60 * 1000,
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+                path: '/',
+                maxAge: 15 * 60 * 1000 // 15 minutes
             });
             res.cookie('refreshToken', refreshToken, {
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 7 * 24 * 60 * 60 * 1000,
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+                path: '/',
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
             });
             res.json({ message: 'Login successful', username, email, role, isActive, _id, age, gender, profile_pic, phone, address });
         }
@@ -95,16 +108,30 @@ class UserController {
     async googleAuth(req, res) {
         try {
             const { token } = req.body;
-            const result = await this.UserService.googleAuth(token);
+            const result = await this._userService.googleAuth(token);
+            // res.cookie('accessToken', result.accessToken, {
+            //   httpOnly: true,
+            //   secure: true, // Required for HTTPS
+            //   sameSite: 'none', // Required for cross-site cookies
+            //   maxAge: 24 * 60 * 60 * 1000, // 1 day
+            // });
+            // res.cookie('refreshToken', result.refreshToken, {
+            //   httpOnly: true,
+            //   secure: true,
+            //   sameSite: 'none',
+            //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            // });
             res.cookie('accessToken', result.accessToken, {
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 15 * 60 * 1000,
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+                path: '/',
+                maxAge: 15 * 60 * 1000 // 15 minutes
             });
             res.cookie('refreshToken', result.refreshToken, {
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 7 * 24 * 60 * 60 * 1000,
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+                path: '/',
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
             });
             res.status(200).json({
                 message: 'Google authentication successful',
@@ -129,7 +156,7 @@ class UserController {
         try {
             const userDetails = req.body;
             console.log('Incoming profile update request:', userDetails);
-            const updatedUser = await this.UserService.profile(userDetails);
+            const updatedUser = await this._userService.profile(userDetails);
             res.status(200).json({ message: 'Profile updated successfully', user: updatedUser });
         }
         catch (error) {
@@ -143,7 +170,7 @@ class UserController {
             const limit = parseInt(req.query.limit) || 6;
             const search = req.query.search || "";
             const department = req.query.department || "";
-            const result = await this.UserService.getDoctors(page, limit, search, department);
+            const result = await this._userService.getDoctors(page, limit, search, department);
             res.status(200).json(result);
         }
         catch (error) {
@@ -154,7 +181,7 @@ class UserController {
     async doctorSlots(req, res) {
         try {
             const doctorId = req.params.id;
-            const slots = await this.UserService.getDoctorSlots(doctorId);
+            const slots = await this._userService.getDoctorSlots(doctorId);
             console.log(slots, 'the slots are comming');
             res.status(200).json(slots);
         }
@@ -171,7 +198,7 @@ class UserController {
     async createPaymentIntent(req, res) {
         try {
             const { userId, amount } = req.body;
-            const clientSecret = await this.UserService.createPaymentIntent(amount);
+            const clientSecret = await this._userService.createPaymentIntent(amount);
             console.log(clientSecret, 'is this creating');
             res.status(200).json({ clientSecret });
         }
@@ -190,7 +217,7 @@ class UserController {
                 payment_id: req.body.paymentId,
                 status: 'pending'
             };
-            const result = await this.UserService.createAppointment(appointmentData);
+            const result = await this._userService.createAppointment(appointmentData);
             res.status(201).json(result);
         }
         catch (error) {
@@ -205,7 +232,7 @@ class UserController {
             const pageSize = parseInt(req.query.pageSize) || 3;
             console.log(userId, "the userId is coming from params");
             console.log("Pagination:", { page, pageSize });
-            const appointmentDetails = await this.UserService.getAppointmentDetails(userId, page, pageSize);
+            const appointmentDetails = await this._userService.getAppointmentDetails(userId, page, pageSize);
             console.log('Total appointments found:', appointmentDetails.totalCount);
             console.log(appointmentDetails, 'the appointment details is comming or not');
             res.status(200).json(appointmentDetails);
@@ -224,7 +251,7 @@ class UserController {
         try {
             console.log(req.body, 'the body is comming and correct');
             const { appointmentId } = req.body;
-            const result = await this.UserService.refundPayment(appointmentId);
+            const result = await this._userService.refundPayment(appointmentId);
             res.status(200).json({ result });
         }
         catch (error) {
@@ -240,7 +267,7 @@ class UserController {
             const limit = parseInt(req.query.limit) || 3;
             const status = req.query.status;
             console.log(`Fetching appointments for user ${userId}, page ${page}, limit ${limit}, status ${status || 'all'}`);
-            const result = await this.UserService.getcancelandcompleteAppointmentDetails(userId, page, limit, status);
+            const result = await this._userService.getcancelandcompleteAppointmentDetails(userId, page, limit, status);
             res.status(200).json(result);
         }
         catch (error) {
@@ -256,7 +283,7 @@ class UserController {
     async resetPassword(req, res) {
         try {
             const { userId, oldPassword, newPassword } = req.body;
-            const result = await this.UserService.resetPassword(userId, oldPassword, newPassword);
+            const result = await this._userService.resetPassword(userId, oldPassword, newPassword);
             res.status(200).json(result);
         }
         catch (error) {
@@ -266,7 +293,7 @@ class UserController {
     async sendForgottenpassword(req, res) {
         try {
             const { email } = req.body;
-            let result = await this.UserService.sendForgottenpassword(email);
+            let result = await this._userService.sendForgottenpassword(email);
             res.status(200).json(result);
         }
         catch (error) {
@@ -278,7 +305,7 @@ class UserController {
         try {
             console.log(req.body);
             const { email, otpString } = req.body;
-            let result = await this.UserService.verifyForgottenpassword(email, otpString);
+            let result = await this._userService.verifyForgottenpassword(email, otpString);
             res.status(200).json(result);
         }
         catch (error) {
@@ -289,7 +316,7 @@ class UserController {
         try {
             const { email, password } = req.body;
             console.log(req.body);
-            let result = await this.UserService.resetForgottenpassword(email, password);
+            let result = await this._userService.resetForgottenpassword(email, password);
             res.status(200).json(result);
         }
         catch (error) {
@@ -299,7 +326,7 @@ class UserController {
         try {
             const appointmentId = req.params.appointmentid;
             console.log(appointmentId);
-            let result = await this.UserService.getPrescriptions(appointmentId);
+            let result = await this._userService.getPrescriptions(appointmentId);
             console.log(result);
             res.status(200).json(result);
         }
@@ -311,7 +338,7 @@ class UserController {
         try {
             const { appointmentid, rating, reviewText, userid } = req.body;
             console.log(req.body);
-            let result = await this.UserService.reviews(appointmentid, rating, reviewText, userid);
+            let result = await this._userService.reviews(appointmentid, rating, reviewText, userid);
             res.status(200).json(result);
         }
         catch (error) {
@@ -379,4 +406,4 @@ class UserController {
         }
     }
 }
-exports.userController = new UserController(new userService_1.UserService(userRepository_1.userRepository, slotRepository_1.slotRepository, otpService_1.otpService));
+exports.default = new userController(new userService_1._userService(userRepository_1.default, slotRepository_1.default, otpService_1.default));

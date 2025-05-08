@@ -1,22 +1,22 @@
-import { AdminLoginResponse, Review, ReviewAdminside, User, UserRole } from "../Interfaces/user";
+import { adminLoginResponse, review, reviewAdminside, user, userRole } from "../Interfaces/user";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { userRepository } from "../Repository/userRepository";
-import { IUserRepository } from "../Interfaces/iUserRepository";
-import { ChartAppointmentStats, DashboardStats } from "../Interfaces/appointment";
-import { IAdminService } from "../Interfaces/iAdminService";
-import { IEmailService } from "../Interfaces/iEmailService";
-import { emailService } from "./emailService";
+import  _userRepository  from "../Repository/userRepository";
+import { IuserRepository } from "../Entities/iUserRepository";
+import { chartAppointmentStats, dashboardStats } from "../Interfaces/appointment";
+import { IadminService } from "../Entities/iAdminService";
+import { IemailService } from "../Entities/iEmailService";
+import  _emailService  from "./emailService";
 dotenv.config();
 
-export class AdminService implements IAdminService{
-    constructor(private userRepository: IUserRepository,private emailService:IEmailService){}
+export class _adminService implements IadminService{
+    constructor(private _userRepository: IuserRepository,private _emailService:IemailService){}
     
-  async login(email: string, password: string):Promise<AdminLoginResponse> {
+  async login(email: string, password: string):Promise<adminLoginResponse> {
     try {
-      const admin = await this.userRepository.findUserByEmail(email);
-      if (!admin || admin.role !== UserRole.ADMIN) {
+      const admin = await this._userRepository.findUserByEmail(email);
+      if (!admin || admin.role !== userRole.ADMIN) {
         throw new Error("Invalid credentials");
       }
 
@@ -58,9 +58,9 @@ export class AdminService implements IAdminService{
     }
   }
 
-  async getPatients(): Promise<User[]> {
+  async getPatients(): Promise<user[]> {
     try {
-      const users = await this.userRepository.findAllUsers();
+      const users = await this._userRepository.findAllUsers();
 
       const patients = users.filter((user) => user.role === "patient");
 
@@ -74,19 +74,19 @@ export class AdminService implements IAdminService{
   async togglePatientStatus(
     id: string,
     is_active: boolean
-  ): Promise<User | null> {
+  ): Promise<user | null> {
     try {
-      const user = await this.userRepository.findUserById(id);
+      const user = await this._userRepository.findUserById(id);
 
       if (!user) {
-        throw new Error("User not found");
+        throw new Error("user not found");
       }
 
-      if (user.role !== UserRole.PATIENT) {
-        throw new Error("User is not a patient");
+      if (user.role !== userRole.PATIENT) {
+        throw new Error("user is not a patient");
       }
 
-      const updatedUser = await this.userRepository.updateUserStatus(id, is_active);
+      const updatedUser = await this._userRepository.updateUserStatus(id, is_active);
       return updatedUser;
     } catch (error) {
       console.error("Error toggling patient status:", error);
@@ -94,18 +94,18 @@ export class AdminService implements IAdminService{
     }
   }
 
-  async getVerifyDoctors(): Promise<User[]> {
+  async getVerifyDoctors(): Promise<user[]> {
     try {
-      return await this.userRepository.findAllVerifyDoctors();
+      return await this._userRepository.findAllVerifyDoctors();
     } catch (error) {
       console.error("Error fetching doctors:", error);
       throw error;
     }
   }
 
-  async getDoctors(): Promise<User[]> {
+  async getDoctors(): Promise<user[]> {
     try {
-      return await this.userRepository.findAllDoctors();
+      return await this._userRepository.findAllDoctors();
     } catch (error) {
       console.error("Error fetching doctor", error);
       throw error;
@@ -114,65 +114,65 @@ export class AdminService implements IAdminService{
 
   async rejectDoctor(id: string, reason: string): Promise<void> {
     try {
-      const doctor = await this.userRepository.findUserById(id)
+      const doctor = await this._userRepository.findUserById(id)
 
       if (!doctor) {
         throw new Error("Doctor not found")
       }
 
-      if (doctor.role !== UserRole.DOCTOR) {
-        throw new Error("User is not a doctor")
+      if (doctor.role !== userRole.DOCTOR) {
+        throw new Error("user is not a doctor")
       }
 
       // Send rejection email
-      await this.emailService.sendRejectionEmail(doctor.email, reason)
+      await this._emailService.sendRejectionEmail(doctor.email, reason)
 
       // Remove doctor from the database
-      await this.userRepository.removeUser(id)
+      await this._userRepository.removeUser(id)
     } catch (error) {
       console.error("Error rejecting doctor:", error)
       throw error
     }
   }
 
-  async toggleDoctorStatus(id: string): Promise<User | null> {
+  async toggleDoctorStatus(id: string): Promise<user | null> {
     try {
-      const user = await this.userRepository.findUserById(id);
+      const user = await this._userRepository.findUserById(id);
 
       if (!user) {
-        throw new Error("User not found");
+        throw new Error("user not found");
       }
 
-      if (user.role !== UserRole.DOCTOR) {
-        throw new Error("User is not a doctor");
+      if (user.role !== userRole.DOCTOR) {
+        throw new Error("user is not a doctor");
       }
       const newStatus = !user.is_active;
 
-      return await this.userRepository.updateUserStatus(id, newStatus);
+      return await this._userRepository.updateUserStatus(id, newStatus);
     } catch (error) {
       console.error("Error toggling doctor status:", error);
       throw error;
     }
   }
 
-    async verifyDoctor(id: string): Promise<User | null> {
+    async verifyDoctor(id: string): Promise<user | null> {
     try {
-      const user = await this.userRepository.findUserById(id)
+      const user = await this._userRepository.findUserById(id)
 
       if (!user) {
-        throw new Error("User not found")
+        throw new Error("user not found")
       }
 
-      if (user.role !== UserRole.DOCTOR) {
-        throw new Error("User is not a doctor")
+      if (user.role !== userRole.DOCTOR) {
+        throw new Error("user is not a doctor")
       }
 
       const is_verified = true // Always set to true when approving
-      const updatedUser = await this.userRepository.updateDoctorVerification(id, is_verified)
+      const updatedUser = await this._userRepository.updateDoctorVerification(id, is_verified)
 
       if (updatedUser && is_verified) {
         // Send approval email
-        await this.emailService.sendApprovalEmail(updatedUser.email)
+        await this._emailService.sendApprovalEmail(updatedUser.email)
       }
 
       return updatedUser
@@ -182,9 +182,9 @@ export class AdminService implements IAdminService{
     }
   }
 
-  async getDashboardMetrics(): Promise<DashboardStats> {
+  async getDashboardMetrics(): Promise<dashboardStats> {
     try {
-      const stats = await this.userRepository.getDashboardStats();
+      const stats = await this._userRepository.getDashboardStats();
       console.log(stats,'is the stats is comming or not')
       return stats;
     } catch (error) {
@@ -193,18 +193,18 @@ export class AdminService implements IAdminService{
     }
   }
 
-  async getAppointmentChartStats(timeRange: string): Promise<ChartAppointmentStats> {
+  async getAppointmentChartStats(timeRange: string): Promise<chartAppointmentStats> {
     try {
-      return await this.userRepository.getAppointmentChartStats(timeRange);
+      return await this._userRepository.getAppointmentChartStats(timeRange);
     } catch (error) {
       console.error('Error fetching appointment chart stats:', error);
       throw error;
     }
   }
 
-  async getReviews(): Promise<ReviewAdminside[]> {
+  async getReviews(): Promise<reviewAdminside[]> {
     try {
-      const reviews = await this.userRepository.getAllReviews();
+      const reviews = await this._userRepository.getAllReviews();
       console.log('review is comming or not ',reviews)
       return reviews;
     } catch (error) {
@@ -217,4 +217,4 @@ export class AdminService implements IAdminService{
 
 }
 
-export const adminService = new AdminService(userRepository,emailService);
+export default new _adminService(_userRepository,_emailService);

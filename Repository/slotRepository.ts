@@ -1,27 +1,27 @@
 
 import { Types } from 'mongoose';
-import { Slot } from '../Interfaces/slot';
-import SlotModel from '../Model/slotModel';
-import { ISlotRepository } from 'Interfaces/iSlotRepository';
+import { slot } from '../Interfaces/slot';
+import slotModel from '../Model/slotModel';
+import { IslotRepository } from 'Entities/iSlotRepository';
 
-class SlotRepository implements ISlotRepository {
+class _slotRepository implements IslotRepository {
 
 
-  async createSlot(slot: Slot): Promise<Slot> {
-    const newSlot = new SlotModel(slot);
+  async createSlot(slot: slot): Promise<slot> {
+    const newSlot = new slotModel(slot);
     return newSlot.save();
   }
 
-  async getSlotsById(id: string): Promise<Slot | null> {
-    return SlotModel.findById(id)
+  async getSlotsById(id: string): Promise<slot | null> {
+    return slotModel.findById(id)
   }
 
-  async getSlotsByDoctorId(doctorId: string): Promise<Slot[]> {
+  async getSlotsByDoctorId(doctorId: string): Promise<slot[]> {
 
     const currentDate = new Date();
     const currentDay = currentDate.toISOString().split('T')[0];
 
-    return SlotModel.find({
+    return slotModel.find({
       doctor_id: doctorId,
       status: 'available',
       $or: [
@@ -39,23 +39,23 @@ class SlotRepository implements ISlotRepository {
   }
 
   async deletePastSlots(doctorId: string, currentDate: Date): Promise<void> {
-    await SlotModel.deleteMany({
+    await slotModel.deleteMany({
       doctor_id: doctorId,
       status: 'available',
       day: { $lt: currentDate.toISOString().split('T')[0] }
     }).exec();
   }
 
-  async updateSlotStatus(slotId: string, status: string): Promise<Slot | null> {
-    return SlotModel.findByIdAndUpdate(slotId, { status: status }, { new: true }).exec()
+  async updateSlotStatus(slotId: string, status: string): Promise<slot | null> {
+    return slotModel.findByIdAndUpdate(slotId, { status: status }, { new: true }).exec()
   }
 
-  async deleteSlotById(slotId: string): Promise<Slot | null> {
-    let slot = await SlotModel.findByIdAndDelete(slotId).exec()
+  async deleteSlotById(slotId: string): Promise<slot | null> {
+    let slot = await slotModel.findByIdAndDelete(slotId).exec()
     return slot
   }
 }
 
 
 
-export const slotRepository = new SlotRepository();
+export default new _slotRepository();

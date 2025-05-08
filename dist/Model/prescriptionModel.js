@@ -58,5 +58,5 @@ prescriptionSchema.pre('save', function (next) {
     this.updated_at = new Date();
     next();
 });
-const PrescriptionModel = mongoose_1.default.model('Prescription', prescriptionSchema);
-exports.default = PrescriptionModel;
+const prescriptionModel = mongoose_1.default.model('Prescription', prescriptionSchema);
+exports.default = prescriptionModel;

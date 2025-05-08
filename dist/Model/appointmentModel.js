@@ -48,5 +48,5 @@ const appointmentSchema = new mongoose_1.Schema({
     created_at: { type: Date, default: Date.now },
     updated_at: { type: Date, default: Date.now }
 });
-const AppointmentModel = mongoose_1.default.model('Appointment', appointmentSchema);
-exports.default = AppointmentModel;
+const appointmentModel = mongoose_1.default.model('Appointment', appointmentSchema);
+exports.default = appointmentModel;

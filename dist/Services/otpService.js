@@ -3,12 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.otpService = void 0;
 const crypto_1 = __importDefault(require("crypto"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-class OtpService {
+class _otpService {
     generateOTP() {
         return crypto_1.default.randomInt(1000, 9999).toString();
     }
@@ -65,4 +64,4 @@ class OtpService {
         return true;
     }
 }
-exports.otpService = new OtpService();
+exports.default = new _otpService();

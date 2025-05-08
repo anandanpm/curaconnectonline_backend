@@ -1,21 +1,21 @@
 
-import { User, UserRole, SignupResponse, LoginResponse } from '../Interfaces/user';
-import { otpService } from './otpService';
+import { user, userRole, signupResponse, loginResponse } from '../Interfaces/user';
+import _otpService from './otpService';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import dotenv from 'dotenv';
-import { slotRepository } from '../Repository/slotRepository';
+import  _slotRepository  from '../Repository/slotRepository';
 import Stripe from "stripe"
 import SlotModel from '../Model/slotModel';
-import { emailService } from './emailService';
-import { IUserRepository } from '../Interfaces/iUserRepository';
-import { userRepository } from '../Repository/userRepository';
-import { ISlotRepository } from '../Interfaces/iSlotRepository';
-import { IUserService } from '../Interfaces/iUserService';
-import { AppointmentDetails, AppointmentResponse, RefundResponse } from '../Interfaces/appointment';
-import { IOtpService } from '../Interfaces/iotpService';
-import { Prescription } from '../Interfaces/prescription';
+import _emailService  from './emailService';
+import { IuserRepository } from '../Entities/iUserRepository';
+import _userRepository from '../Repository/userRepository'; 
+import { IslotRepository } from '../Entities/iSlotRepository';
+import { IuserService } from '../Entities/iUserService';
+import { appointmentDetails, appointmentResponse, refundResponse } from '../Interfaces/appointment';
+import { IotpService } from '../Entities/iotpService';
+import { prescription } from '../Interfaces/prescription';
 dotenv.config();
 
 
@@ -24,36 +24,36 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-01-27.acacia",
 })
 
-export class UserService implements IUserService {
-  constructor(private userRepository: IUserRepository, private slotRepository: ISlotRepository, private OtpService: IOtpService) { }
+export class _userService implements IuserService {
+  constructor(private _userRepository: IuserRepository, private _slotRepository: IslotRepository, private _otpService: IotpService) { }
 
-  async findUserById(userId: string): Promise<User | null> {
+  async findUserById(userId: string): Promise<user | null> {
     try {
-      const user = await this.userRepository.findUserById(userId);
+      const user = await this._userRepository.findUserById(userId);
       return user
     } catch (error) {
       throw error
     }
   }
 
-  async signup(username: string, email: string, password: string): Promise<SignupResponse> {
-    const existingUser = await this.userRepository.findUserByEmail(email);
+  async signup(username: string, email: string, password: string): Promise<signupResponse> {
+    const existingUser = await this._userRepository.findUserByEmail(email);
     if (existingUser) {
       throw new Error('Email is already exists');
     }
     const hashedPassword = await bcrypt.hash(password!, 10)
-    const otp = this.OtpService.generateOTP();
+    const otp = this._otpService.generateOTP();
     console.log(otp,'the otp is comming for the user')
-    const otpExpiration = this.OtpService.generateOtpExpiration();
-    const newUser = { username, email, password: hashedPassword, otp, otp_expiration: otpExpiration, role: UserRole.PATIENT };
+    const otpExpiration = this._otpService.generateOtpExpiration();
+    const newUser = { username, email, password: hashedPassword, otp, otp_expiration: otpExpiration, role: userRole.PATIENT };
 
-    let createdUser = await this.userRepository.createUser(newUser);
+    let createdUser = await this._userRepository.createUser(newUser);
     if (!createdUser) {
-      throw new Error('User not created');
+      throw new Error('user not created');
     }
-    const emailSent = await this.OtpService.sendOTPEmail(email, otp);
+    const emailSent = await this._otpService.sendOTPEmail(email, otp);
     if (!emailSent) {
-      createdUser = await this.userRepository.updateUser({ ...createdUser, otp: null, otp_expiration: null }) as User;
+      createdUser = await this._userRepository.updateUser({ ...createdUser, otp: null, otp_expiration: null }) as user;
       throw new Error('Failed to send OTP email');
     }
 
@@ -62,34 +62,34 @@ export class UserService implements IUserService {
   }
 
   async verifyOtp(email: string, otp: string) {
-    const user = await this.userRepository.findUserByEmail(email);
+    const user = await this._userRepository.findUserByEmail(email);
     if (!user || !user.otp || !user.otp_expiration) {
       throw new Error('Invalid OTP or user not found');
     }
 
-    if (this.OtpService.validateOTP(user.otp, user.otp_expiration, otp)) {
+    if (this._otpService.validateOTP(user.otp, user.otp_expiration, otp)) {
       user.is_active = true;
       user.otp = null;
       user.otp_expiration = null;
-      await this.userRepository.updateUser(user);
+      await this._userRepository.updateUser(user);
       return { message: 'Signup successful' };
     } else {
       throw new Error('Invalid or expired OTP');
     }
   }
 
-  async login(email: string, password: string): Promise<LoginResponse> {
+  async login(email: string, password: string): Promise<loginResponse> {
     try {
-      const user = await this.userRepository.findUserByEmail(email);
+      const user = await this._userRepository.findUserByEmail(email);
       if (!user) {
         throw new Error('Email is incorrect');
       }
 
       if (user.is_active === false) {
-        throw new Error('User is Blocked');
+        throw new Error('user is Blocked');
       }
 
-      if (user.role !== UserRole.PATIENT) {
+      if (user.role !== userRole.PATIENT) {
         throw new Error('Only patient can login here');
       }
       const passwordMatch = await bcrypt.compare(password, user.password!);
@@ -120,28 +120,28 @@ export class UserService implements IUserService {
 
   async resendOtp(email: string) {
     try {
-      const user = await this.userRepository.findUserByEmail(email);
+      const user = await this._userRepository.findUserByEmail(email);
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('user not found');
       }
 
       if (user.is_active) {
-        return { message: 'User is already verified' };
+        return { message: 'user is already verified' };
       }
 
-      const otp = this.OtpService.generateOTP();
-      const otpExpiration = this.OtpService.generateOtpExpiration();
+      const otp = this._otpService.generateOTP();
+      const otpExpiration = this._otpService.generateOtpExpiration();
       user.otp = otp;
       user.otp_expiration = otpExpiration;
 
-      const updatedUser = await this.userRepository.updateUser(user);
-      if (!updatedUser) throw new Error("User not updated")
+      const updatedUser = await this._userRepository.updateUser(user);
+      if (!updatedUser) throw new Error("user not updated")
 
-      const emailSent = await this.OtpService.sendOTPEmail(email, otp);
+      const emailSent = await this._otpService.sendOTPEmail(email, otp);
       if (!emailSent) {
         user.otp = null;
         user.otp_expiration = null;
-        await this.userRepository.updateUser(user);
+        await this._userRepository.updateUser(user);
         throw new Error('Failed to send OTP email');
       }
 
@@ -151,7 +151,7 @@ export class UserService implements IUserService {
     }
   }
 
-  async googleAuth(token: string): Promise<LoginResponse> {
+  async googleAuth(token: string): Promise<loginResponse> {
     try {
       const ticket = await client.verifyIdToken({
         idToken: token,
@@ -163,21 +163,21 @@ export class UserService implements IUserService {
         throw new Error('Invalid Google token');
       }
 
-      let user = await this.userRepository.findUserByEmail(payload.email);
+      let user = await this._userRepository.findUserByEmail(payload.email);
 
       if (!user) {
         // Create a new user if they don't exist
-        const newUser: User = {
+        const newUser: user = {
           username: payload.name || '',
           email: payload.email,
           password: undefined,
-          role: UserRole.PATIENT,
+          role: userRole.PATIENT,
           is_active: true // 
         };
-        user = await this.userRepository.createUser(newUser);
+        user = await this._userRepository.createUser(newUser);
       }
 
-      if (user.role !== UserRole.PATIENT) {
+      if (user.role !== userRole.PATIENT) {
         throw new Error('Only patient can login here');
       }
 
@@ -212,7 +212,7 @@ export class UserService implements IUserService {
     }
   }
 
-  async profile(userdetails: User) {
+  async profile(userdetails: user) {
     try {
       const { _id, ...updateData } = userdetails;
 
@@ -228,11 +228,11 @@ export class UserService implements IUserService {
         }
       });
 
-      const updatedUser = await this.userRepository.updateUserProfile(_id.toString(), updateData);
+      const updatedUser = await this._userRepository.updateUserProfile(_id.toString(), updateData);
 
 
       if (!updatedUser) {
-        throw new Error('User not found or update failed');
+        throw new Error('user not found or update failed');
       }
 
       return updatedUser;
@@ -250,7 +250,7 @@ export class UserService implements IUserService {
     department: string = ""
   ) {
     try {
-      return await this.userRepository.findVerifiedDoctorsWithFilters(
+      return await this._userRepository.findVerifiedDoctorsWithFilters(
         page,
         limit,
         search,
@@ -264,13 +264,13 @@ export class UserService implements IUserService {
 
   async getDoctorSlots(doctorId: string) {
     try {
-      const doctor = await this.userRepository.findUserById(doctorId)
-      if (!doctor || doctor.role !== UserRole.DOCTOR) {
+      const doctor = await this._userRepository.findUserById(doctorId)
+      if (!doctor || doctor.role !== userRole.DOCTOR) {
         throw new Error("Doctor not found")
       }
       const currentDate = new Date();
-      // await this.slotRepository.deletePastSlots(doctorId,currentDate)
-      return this.slotRepository.getSlotsByDoctorId(doctorId)
+      // await this._slotRepository.deletePastSlots(doctorId,currentDate)
+      return this._slotRepository.getSlotsByDoctorId(doctorId)
     } catch (error) {
       console.error("Error fetching doctor slots:", error)
       throw error
@@ -298,17 +298,17 @@ export class UserService implements IUserService {
     amount: number
     payment_id: string
     status: string
-  }): Promise<AppointmentResponse> {
+  }): Promise<appointmentResponse> {
     try {
-      const appointment = await this.userRepository.createAppointment(appointmentData)
+      const appointment = await this._userRepository.createAppointment(appointmentData)
 
-      const updatedSlot = await this.slotRepository.updateSlotStatus(appointmentData.slot_id, "booked")
+      const updatedSlot = await this._slotRepository.updateSlotStatus(appointmentData.slot_id, "booked")
 
-      const slot = await this.slotRepository.getSlotsById(appointmentData.slot_id)
+      const slot = await this._slotRepository.getSlotsById(appointmentData.slot_id)
       if (!slot) {
         throw new Error("Slot not found")
       }
-      const doctor = await this.userRepository.findDoctorById(slot.doctor_id.toString())
+      const doctor = await this._userRepository.findDoctorById(slot.doctor_id.toString())
       if (!doctor) {
         throw new Error("Doctor not found")
       }
@@ -316,7 +316,7 @@ export class UserService implements IUserService {
       if (!updatedSlot) {
         throw new Error("Failed to update slot status")
       }
-      const patient = await this.userRepository.findUserById(appointmentData.user_id)
+      const patient = await this._userRepository.findUserById(appointmentData.user_id)
       if (!patient || !patient.email) {
         throw new Error("Patient information not found")
       }
@@ -333,7 +333,7 @@ export class UserService implements IUserService {
         status: appointmentData.status,
       }
 
-      const emailSent = await emailService.sendAppointmentConfirmation(
+      const emailSent = await _emailService.sendAppointmentConfirmation(
         patient.email,
         appointmentDetails
       )
@@ -360,14 +360,14 @@ export class UserService implements IUserService {
 
 
   async getAppointmentDetails(userId: string, page: number = 1, pageSize: number = 3): Promise<{
-    appointments: AppointmentDetails[];
+    appointments: appointmentDetails[];
     totalCount: number;
     totalPages: number;
     currentPage: number;
   }> {
     try {
       const { appointments: appointmentDetails, totalCount } =
-        await this.userRepository.findPendingAppointmentsByUserId(userId, page, pageSize);
+        await this._userRepository.findPendingAppointmentsByUserId(userId, page, pageSize);
 
       // Calculate total pages
       const totalPages = Math.ceil(totalCount / pageSize);
@@ -413,9 +413,9 @@ export class UserService implements IUserService {
     }
   }
 
-  async refundPayment(appointmentId: string): Promise<RefundResponse> {
+  async refundPayment(appointmentId: string): Promise<refundResponse> {
     try {
-      const appointment = await this.userRepository.findAppointmentById(appointmentId);
+      const appointment = await this._userRepository.findAppointmentById(appointmentId);
 
       if (!appointment) {
         throw new Error('Appointment not found');
@@ -468,13 +468,13 @@ export class UserService implements IUserService {
     limit: number = 3,
     status?: string
   ): Promise<{
-    appointments: AppointmentDetails[];
+    appointments: appointmentDetails[];
     totalCount: number;
     totalPages: number;
   }> {
     try {
       // Get all appointments for counting and pagination
-      const allAppointments = await this.userRepository.findcancelandcompleteAppointmentsByUserId(userId, status)
+      const allAppointments = await this._userRepository.findcancelandcompleteAppointmentsByUserId(userId, status)
 
       // Calculate pagination values
       const totalCount = allAppointments.length
@@ -483,7 +483,7 @@ export class UserService implements IUserService {
       const endIndex = startIndex + limit
 
       // Get paginated appointments
-      const paginatedAppointments = await this.userRepository.findcancelandcompleteAppointmentsByUserId(
+      const paginatedAppointments = await this._userRepository.findcancelandcompleteAppointmentsByUserId(
         userId,
         status,
         startIndex,
@@ -523,9 +523,9 @@ export class UserService implements IUserService {
 
   async resetPassword(userId: string, oldPassword: string, newPassword: string) {
     try {
-      const user = await this.userRepository.findUserById(userId)
+      const user = await this._userRepository.findUserById(userId)
       if (!user) {
-        throw new Error('User not found')
+        throw new Error('user not found')
       }
       const passwordMatch = await bcrypt.compare(oldPassword, user.password!);
       if (!passwordMatch) {
@@ -533,7 +533,7 @@ export class UserService implements IUserService {
       }
       const hashedPassword = await bcrypt.hash(newPassword, 10)
       user.password = hashedPassword
-      await this.userRepository.updateUser(user)
+      await this._userRepository.updateUser(user)
       return { message: 'Password updated successfully' }
     } catch (error) {
       console.error("Error updating password:", error)
@@ -543,20 +543,20 @@ export class UserService implements IUserService {
 
   async sendForgottenpassword(email: string) {
     try {
-      const user = await this.userRepository.findUserByEmail(email)
+      const user = await this._userRepository.findUserByEmail(email)
       if (!user) {
-        throw new Error('User not found')
+        throw new Error('user not found')
       }
-      const otp = this.OtpService.generateOTP();
-      const otpExpiration = this.OtpService.generateOtpExpiration();
+      const otp = this._otpService.generateOTP();
+      const otpExpiration = this._otpService.generateOtpExpiration();
       user.otp = otp;
       user.otp_expiration = otpExpiration;
-      await this.userRepository.updateUser(user)
-      const emailSent = await this.OtpService.sendOTPEmail(email, otp);
+      await this._userRepository.updateUser(user)
+      const emailSent = await this._otpService.sendOTPEmail(email, otp);
       if (!emailSent) {
         user.otp = null;
         user.otp_expiration = null;
-        await this.userRepository.updateUser(user);
+        await this._userRepository.updateUser(user);
         throw new Error('Failed to send OTP email');
       }
       return { message: 'New OTP sent successfully' };
@@ -568,15 +568,15 @@ export class UserService implements IUserService {
 
   async verifyForgottenpassword(email: string, otpString: string) {
     try {
-      const user = await this.userRepository.findUserByEmail(email)
+      const user = await this._userRepository.findUserByEmail(email)
       if (!user || !user.otp || !user.otp_expiration) {
         throw new Error('Invalid OTP or user not found');
       }
 
-      if (this.OtpService.validateOTP(user.otp, user.otp_expiration, otpString)) {
+      if (this._otpService.validateOTP(user.otp, user.otp_expiration, otpString)) {
         user.otp = null;
         user.otp_expiration = null;
-        await this.userRepository.updateUser(user);
+        await this._userRepository.updateUser(user);
         return { message: 'Otp verified successfully' };
       } else {
         throw new Error('Invalid or expired OTP');
@@ -589,13 +589,13 @@ export class UserService implements IUserService {
 
   async resetForgottenpassword(email: string, password: string) {
     try {
-      const user = await this.userRepository.findUserByEmail(email)
+      const user = await this._userRepository.findUserByEmail(email)
       if (!user) {
-        throw new Error('User not found')
+        throw new Error('user not found')
       }
       const hashedPassword = await bcrypt.hash(password, 10)
       user.password = hashedPassword
-      await this.userRepository.updateUser(user)
+      await this._userRepository.updateUser(user)
       return { message: 'Password updated successfully' }
     } catch (error) {
       console.error("Error updating password:", error)
@@ -604,9 +604,9 @@ export class UserService implements IUserService {
 
   }
 
-  async getPrescriptions(appointmentId: string): Promise<Prescription[]> {
+  async getPrescriptions(appointmentId: string): Promise<prescription[]> {
     try {
-      const prescriptions = await this.userRepository.getPrescriptions(appointmentId);
+      const prescriptions = await this._userRepository.getPrescriptions(appointmentId);
 
       return prescriptions;
     } catch (error) {
@@ -618,7 +618,7 @@ export class UserService implements IUserService {
 
   async reviews(appointmentid: string, rating: number, reviewText: string, userid: string): Promise<{ message: string; }> {
     try {
-      await this.userRepository.createReview(appointmentid, rating, reviewText, userid);
+      await this._userRepository.createReview(appointmentid, rating, reviewText, userid);
       return { message: 'review is uploaded successfully' };
     } catch (error) {
       console.error('Error uploading review:', error);
@@ -629,5 +629,5 @@ export class UserService implements IUserService {
 }
 
 
-export const userService = new UserService(userRepository, slotRepository, otpService)
+
 

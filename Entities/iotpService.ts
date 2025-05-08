@@ -1,4 +1,4 @@
-export interface IOtpService {
+export interface IotpService {
   generateOTP(): string;
   generateOtpExpiration(): Date;
   sendOTPEmail(email: string, otp: string): Promise<boolean>;

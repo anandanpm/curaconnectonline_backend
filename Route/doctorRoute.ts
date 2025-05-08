@@ -1,5 +1,5 @@
 import express from 'express';
-import { doctorController } from "../Controllers/doctorController";
+import doctorController  from "../Controllers/doctorController";
 import { doctorAuth } from '../Middleware/authMiddleware';
 
 const docrouter = express.Router();

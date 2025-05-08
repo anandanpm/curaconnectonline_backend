@@ -1,11 +1,11 @@
 
 import mongoose from 'mongoose';
 import ConversationModel from "../Model/conversationModel";
-import { IConversation, IMessage, TransformedConversation, TransformedMessage } from '../Interfaces/conversation';
-import { IConversationRepository } from '../Interfaces/iConversationRepository';
+import { Iconversation, Imessage, transformedConversation, transformedMessage } from '../Interfaces/conversation';
+import { IconversationRepository } from '../Entities/iConversationRepository';
 
-class ConversationRepository implements IConversationRepository {
-  transformMessage(msg: IMessage): TransformedMessage {
+class _conversationRepository implements IconversationRepository {
+  transformMessage(msg: Imessage): transformedMessage {
     return {
       _id: typeof msg._id === 'string' ? msg._id : msg._id?.toString() || new mongoose.Types.ObjectId().toString(),
       sender: typeof msg.sender === 'string' ? msg.sender : msg.sender.toString(),
@@ -15,7 +15,7 @@ class ConversationRepository implements IConversationRepository {
     };
   }
 
-  transformConversation(conversation: IConversation): TransformedConversation {
+  transformConversation(conversation: Iconversation): transformedConversation {
     return {
       _id: conversation._id.toString(),
       sender: typeof conversation.sender === 'string' ? conversation.sender : conversation.sender.toString(),
@@ -24,7 +24,7 @@ class ConversationRepository implements IConversationRepository {
     };
   }
 
-  async findConversation(sender: string, receiver: string): Promise<TransformedConversation | null> {
+  async findConversation(sender: string, receiver: string): Promise<transformedConversation | null> {
     try {
       const conversation = await ConversationModel.findOne({
         $or: [
@@ -35,7 +35,7 @@ class ConversationRepository implements IConversationRepository {
 
       if (!conversation) return null;
 
-      return this.transformConversation(conversation as unknown as IConversation);
+      return this.transformConversation(conversation as unknown as Iconversation);
     } catch (error) {
       console.error("Error finding conversation:", error);
       throw error;
@@ -45,10 +45,10 @@ class ConversationRepository implements IConversationRepository {
   async createConversation(
     sender: string,
     receiver: string,
-    message: Omit<IMessage, '_id'>
-  ): Promise<TransformedConversation> {
+    message: Omit<Imessage, '_id'>
+  ): Promise<transformedConversation> {
     try {
-      const messageWithId: IMessage = {
+      const messageWithId: Imessage = {
         _id: new mongoose.Types.ObjectId(),
         ...message
       };
@@ -59,7 +59,7 @@ class ConversationRepository implements IConversationRepository {
         messages: [messageWithId]
       });
 
-      return this.transformConversation(conversation as unknown as IConversation);
+      return this.transformConversation(conversation as unknown as Iconversation);
     } catch (error) {
       console.error("Error creating conversation:", error);
       throw error;
@@ -68,10 +68,10 @@ class ConversationRepository implements IConversationRepository {
 
   async addMessage(
     conversationId: string,
-    message: Omit<IMessage, '_id'>
-  ): Promise<TransformedConversation> {
+    message: Omit<Imessage, '_id'>
+  ): Promise<transformedConversation> {
     try {
-      const messageWithId: IMessage = {
+      const messageWithId: Imessage = {
         _id: new mongoose.Types.ObjectId(),
         ...message
       };
@@ -86,7 +86,7 @@ class ConversationRepository implements IConversationRepository {
         throw new Error('Conversation not found');
       }
 
-      return this.transformConversation(conversation as unknown as IConversation);
+      return this.transformConversation(conversation as unknown as Iconversation);
     } catch (error) {
       console.error("Error adding message:", error);
       throw error;
@@ -94,4 +94,4 @@ class ConversationRepository implements IConversationRepository {
   }
 }
 
-export const conversationRepository = new ConversationRepository();
+export default new _conversationRepository();

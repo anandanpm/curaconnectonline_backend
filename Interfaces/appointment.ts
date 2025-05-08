@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 
-export interface Appointment {
+export interface appointment {
   populate(arg0: string): unknown;
   save(): unknown;
   _id?: Types.ObjectId;
@@ -14,7 +14,7 @@ export interface Appointment {
   updated_at?: Date;
 }
 
-export interface AppointmentData {
+export interface appointmentData {
   slot_id: string;
   user_id: string;
   amount: number;
@@ -22,14 +22,30 @@ export interface AppointmentData {
   status: string;
 }
 
-export interface RefundResponse {
+export interface refundResponse {
   success: boolean;
   message: string;
   refundAmount: number;
   appointmentId: string;
 }
 
-export interface AppointmentDetails {
+export interface dashboardStats {
+  totalDoctors: number;
+  totalUsers: number;
+  totalAppointments: number;
+  completedAppointments: number;
+  cancelledAppointments: number;
+  pendingAppointments: number;
+  revenueGenerated: number;
+}
+
+export interface chartAppointmentStats {
+  daily: Array<{ name: string; appointments: number }>;
+  weekly: Array<{ name: string; appointments: number }>;
+  yearly: Array<{ name: string; appointments: number }>;
+}
+
+export interface appointmentDetails {
   date: any;
   _id: any;
   user_id: any;
@@ -52,7 +68,7 @@ export interface AppointmentDetails {
   updated_at?: string;
 }
 
-export interface AppointmentResponse {
+export interface appointmentResponse {
   message: string;
   appointment: {
     slot_id: string | any;
@@ -72,18 +88,3 @@ export interface AppointmentResponse {
   };
 }
 
-export interface DashboardStats {
-  totalDoctors: number;
-  totalUsers: number;
-  totalAppointments: number;
-  completedAppointments: number;
-  cancelledAppointments: number;
-  pendingAppointments: number;
-  revenueGenerated: number;
-}
-
-export interface ChartAppointmentStats {
-  daily: Array<{ name: string; appointments: number }>;
-  weekly: Array<{ name: string; appointments: number }>;
-  yearly: Array<{ name: string; appointments: number }>;
-}

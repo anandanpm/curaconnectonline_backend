@@ -1,17 +1,20 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.conversationService = exports.ConversationService = void 0;
-const conversationRepository_1 = require("../Repository/conversationRepository");
-class ConversationService {
-    constructor(conversationRepository) {
-        this.conversationRepository = conversationRepository;
+exports.conversationServiceInstance = exports._conversationService = void 0;
+const conversationRepository_1 = __importDefault(require("../Repository/conversationRepository"));
+class _conversationService {
+    constructor(_conversationRepository) {
+        this._conversationRepository = _conversationRepository;
     }
     async sendMessage(sender, receiver, text) {
         try {
             if (!sender || !receiver || !text) {
                 throw new Error('Missing required fields');
             }
-            let conversation = await this.conversationRepository.findConversation(sender, receiver);
+            let conversation = await this._conversationRepository.findConversation(sender, receiver);
             const message = {
                 text,
                 sender,
@@ -19,10 +22,10 @@ class ConversationService {
                 timestamp: new Date()
             };
             if (!conversation) {
-                conversation = await this.conversationRepository.createConversation(sender, receiver, message);
+                conversation = await this._conversationRepository.createConversation(sender, receiver, message);
             }
             else {
-                conversation = await this.conversationRepository.addMessage(conversation._id.toString(), message);
+                conversation = await this._conversationRepository.addMessage(conversation._id.toString(), message);
             }
             return conversation;
         }
@@ -36,7 +39,7 @@ class ConversationService {
             if (!sender || !receiver) {
                 throw new Error('Sender and receiver are required');
             }
-            const conversation = await this.conversationRepository.findConversation(sender, receiver);
+            const conversation = await this._conversationRepository.findConversation(sender, receiver);
             if (!conversation) {
                 return {
                     _id: null,
@@ -53,5 +56,5 @@ class ConversationService {
         }
     }
 }
-exports.ConversationService = ConversationService;
-exports.conversationService = new ConversationService(conversationRepository_1.conversationRepository);
+exports._conversationService = _conversationService;
+exports.conversationServiceInstance = new _conversationService(conversationRepository_1.default);

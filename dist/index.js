@@ -20,19 +20,20 @@ const PORT = process.env.PORT;
 (0, db_1.default)();
 app.use((0, cors_1.default)({
     origin: process.env.FRONTEND_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
 }));
+app.options('*', (0, cors_1.default)());
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 app.use((req, res, next) => {
     console.log(`Incoming Request: ${req.method} ${req.url}`);
     next();
 });
-app.use("/user", userRoute_1.default);
-app.use("/doctor", doctorRoute_1.default);
-app.use("/admin", adminRoute_1.default);
-app.use("/chat", conversationRoute_1.default);
+app.use("/user/api", userRoute_1.default);
+app.use("/doctor/api", doctorRoute_1.default);
+app.use("/admin/api", adminRoute_1.default);
+app.use("/chat/api", conversationRoute_1.default);
 const server = http_1.default.createServer(app);
 (0, webSocket_1.default)(server);
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

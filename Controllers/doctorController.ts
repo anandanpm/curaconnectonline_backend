@@ -1,20 +1,19 @@
 import { Request, Response } from 'express';
-import { DoctorService } from '../Services/doctorService'
-import { IDoctorService } from '../Interfaces/iDoctorService';
-import { userRepository } from '../Repository/userRepository';
-import { slotRepository } from '../Repository/slotRepository';
-import { otpService } from '../Services/otpService';
-import { Prescription } from 'Interfaces/prescription';
+import  {_doctorService } from '../Services/doctorService'
+import { IdoctorService } from '../Entities/iDoctorService';
+import  _userRepository  from '../Repository/userRepository';
+import  _slotRepository  from '../Repository/slotRepository';
+import _otpService  from '../Services/otpService';
 import jwt from 'jsonwebtoken';
 
 
-class DoctorController {
-  constructor(private DoctorService: IDoctorService) { }
+class doctorController {
+  constructor(private _doctorService: IdoctorService) { }
 
   async getOtp(req: Request, res: Response): Promise<void> {
     try {
       const userData = req.body;
-      const result = await this.DoctorService.signup(userData);
+      const result = await this._doctorService.signup(userData);
       res.status(200).json(result);
     } catch (error: any) {
       console.error("Signup Error:", error);
@@ -25,7 +24,7 @@ class DoctorController {
   async verifyOtp(req: Request, res: Response): Promise<void> {
     try {
       const { email, otp } = req.body;
-      const result = await this.DoctorService.verifyOtp(email, otp);
+      const result = await this._doctorService.verifyOtp(email, otp);
       res.status(200).json(result);
     } catch (error: any) {
       console.error("OTP Verification Error:", error);
@@ -41,7 +40,7 @@ class DoctorController {
         return
       }
 
-      const result = await this.DoctorService.resendOtp(email);
+      const result = await this._doctorService.resendOtp(email);
       res.status(200).json(result);
     } catch (error: any) {
       console.error("Resend OTP Error:", error);
@@ -52,22 +51,35 @@ class DoctorController {
   async login(req: Request, res: Response): Promise<void> {
     try {
       const { Email, password } = req.body;
-      const { accessToken, refreshToken, username, email, isActive, role, profile_pic, age, phone, certification, experience, department, medical_license, address, clinic_name, about, education, gender, _id } = await this.DoctorService.login(Email, password);
+      const { accessToken, refreshToken, username, email, isActive, role, profile_pic, age, phone, certification, experience, department, medical_license, address, clinic_name, about, education, gender, _id } = await this._doctorService.login(Email, password);
+
+      // res.cookie('accessToken',accessToken, {
+      //   httpOnly: true,
+      //   secure: true, // Required for HTTPS
+      //   sameSite: 'none', // Required for cross-site cookies
+      //   maxAge: 24 * 60 * 60 * 1000, // 1 day
+      // });
+  
+      // res.cookie('refreshToken', refreshToken, {
+      //   httpOnly: true,
+      //   secure: true,
+      //   sameSite: 'none',
+      //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      // });
 
       res.cookie('accessToken', accessToken, {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        maxAge: 60 * 60 * 1000,
-        path: '/'
+        path: '/',
+        maxAge: 15 * 60 * 1000 // 15 minutes
       });
 
       res.cookie('refreshToken', refreshToken, {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: '/'
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
-
 
       res.json({ message: 'Login successful', username, email: Email, role, isActive, profile_pic, age, phone, certification, experience, department, medical_license, address, clinic_name, about, gender, education, _id });
     } catch (error: any) {
@@ -94,21 +106,36 @@ class DoctorController {
   async googleAuth(req: Request, res: Response): Promise<void> {
     try {
       const { token } = req.body;
-      const result = await this.DoctorService.googleAuth(token);
+      const result = await this._doctorService.googleAuth(token);
+
+      // res.cookie('accessToken', result.accessToken, {
+      //   httpOnly: true,
+      //   secure: true, // Required for HTTPS
+      //   sameSite: 'none', // Required for cross-site cookies
+      //   maxAge: 24 * 60 * 60 * 1000, // 1 day
+      // });
+  
+      // res.cookie('refreshToken', result.refreshToken, {
+      //   httpOnly: true,
+      //   secure: true,
+      //   sameSite: 'none',
+      //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      // });
 
       res.cookie('accessToken', result.accessToken, {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        maxAge: 60 * 60 * 1000,
-        path: '/'
+        path: '/',
+        maxAge: 15 * 60 * 1000 // 15 minutes
       });
 
       res.cookie('refreshToken', result.refreshToken, {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: '/'
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
+
 
       res.status(200).json({
         message: 'Google authentication successful',
@@ -141,7 +168,7 @@ class DoctorController {
       const docDetails = req.body;
       console.log('Incoming profile update request:', docDetails);
 
-      const updatedDoc = await this.DoctorService.profile(docDetails);
+      const updatedDoc = await this._doctorService.profile(docDetails);
       console.log(updatedDoc, 'the updated one is comming or not')
 
       res.status(200).json({ message: 'Profile updated successfully', updatedDoc });
@@ -155,7 +182,7 @@ class DoctorController {
     try {
       const slotData = req.body.slots;
       console.log('Incoming slot request:', req.body);
-      const result = await this.DoctorService.addSlots(slotData);
+      const result = await this._doctorService.addSlots(slotData);
       res.status(200).json({ message: 'slot added successfully', result });
 
     } catch (error) {
@@ -168,7 +195,7 @@ class DoctorController {
     try {
       const { doctorId } = req.params
       console.log(doctorId)
-      const result = await this.DoctorService.getSlots(doctorId)
+      const result = await this._doctorService.getSlots(doctorId)
       res.status(200).json(result)
     } catch (error) {
 
@@ -181,7 +208,7 @@ class DoctorController {
       const { doctorId } = req.params;
       console.log(doctorId, 'the doctor id is coming');
 
-      const appointments = await this.DoctorService.getDoctorAppointments(doctorId);
+      const appointments = await this._doctorService.getDoctorAppointments(doctorId);
       res.status(200).json(appointments);
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -203,7 +230,7 @@ class DoctorController {
         return;
       }
 
-      const isValidTime = await this.DoctorService.checkAppointmentValidity(appointmentId);
+      const isValidTime = await this._doctorService.checkAppointmentValidity(appointmentId);
       console.log(isValidTime, 'is this is comming or not')
 
       res.status(200).json({
@@ -223,7 +250,7 @@ class DoctorController {
     try {
       console.log(req.body)
       const { doctorId, oldPassword, newPassword } = req.body
-      const result = await this.DoctorService.resetPassword(doctorId, oldPassword, newPassword)
+      const result = await this._doctorService.resetPassword(doctorId, oldPassword, newPassword)
       res.status(200).json(result)
 
     } catch (error) {
@@ -235,7 +262,7 @@ class DoctorController {
   async sendForgottenpassword(req: Request, res: Response): Promise<void> {
     try {
       const { email } = req.body
-      let result = await this.DoctorService.sendForgottenpassword(email)
+      let result = await this._doctorService.sendForgottenpassword(email)
       res.status(200).json(result)
     } catch (error) {
       console.log(error)
@@ -247,7 +274,7 @@ class DoctorController {
     try {
       console.log(req.body)
       const { email, otpString } = req.body
-      let result = await this.DoctorService.verifyForgottenpassword(email, otpString)
+      let result = await this._doctorService.verifyForgottenpassword(email, otpString)
       res.status(200).json(result)
 
     } catch (error) {
@@ -259,7 +286,7 @@ class DoctorController {
     try {
       const { email, password } = req.body
       console.log(req.body)
-      let result = await this.DoctorService.resetForgottenpassword(email, password)
+      let result = await this._doctorService.resetForgottenpassword(email, password)
       res.status(200).json(result)
 
     } catch (error) {
@@ -271,7 +298,7 @@ class DoctorController {
     try {
       const prescriptionData = req.body
       console.log('Incoming prescription request:', prescriptionData);
-      const result = await this.DoctorService.prescription(prescriptionData);
+      const result = await this._doctorService.prescription(prescriptionData);
       console.log(result, 'the prescription is added successfully')
       res.status(200).json({ message: 'prescription added successfully', result });
     }
@@ -283,7 +310,7 @@ class DoctorController {
   async completeAppointment(req: Request, res: Response): Promise<void> {
     try {
       const { appointmentId } = req.params;
-      const result = await this.DoctorService.completeAppointment(appointmentId);
+      const result = await this._doctorService.completeAppointment(appointmentId);
       res.status(200).json(result);
     } catch (error) {
       console.error('Error completing appointment:', error);
@@ -372,7 +399,7 @@ class DoctorController {
       const { doctorId } = req.params;
       console.log(doctorId, 'the doctor id is coming');
 
-      const details = await this.DoctorService.getDetailsDashboard(doctorId);
+      const details = await this._doctorService.getDetailsDashboard(doctorId);
       res.status(200).json(details);
     } catch (error) {
       console.error('Error fetching details:', error);
@@ -385,7 +412,7 @@ class DoctorController {
       const { slotId } = req.params;
       console.log(slotId, 'the slot id is coming');
 
-      const result = await this.DoctorService.deleteSlot(slotId);
+      const result = await this._doctorService.deleteSlot(slotId);
       res.status(200).json(result);
     } catch (error) {
       console.error('Error deleting slot:', error);
@@ -395,4 +422,4 @@ class DoctorController {
 }
 
 
-export const doctorController = new DoctorController(new DoctorService(userRepository, slotRepository, otpService));
+export default new doctorController(new _doctorService(_userRepository, _slotRepository, _otpService));

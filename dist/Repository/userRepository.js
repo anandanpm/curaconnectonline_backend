@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userRepository = void 0;
 const userModel_1 = __importDefault(require("../Model/userModel"));
 const user_1 = require("../Interfaces/user");
 const appointmentModel_1 = __importDefault(require("../Model/appointmentModel"));
@@ -11,7 +10,7 @@ const prescriptionModel_1 = __importDefault(require("../Model/prescriptionModel"
 const reviewModel_1 = __importDefault(require("../Model/reviewModel"));
 const slotModel_1 = __importDefault(require("../Model/slotModel"));
 const mongoose_1 = __importDefault(require("mongoose"));
-class UserRepository {
+class _userRepository {
     async createUser(user) {
         console.log(user, 'from the createUser');
         const newUser = new userModel_1.default(user);
@@ -39,10 +38,10 @@ class UserRepository {
         return userModel_1.default.findOneAndUpdate({ _id: userid }, { $set: { is_active: is_active } }, { new: true, runValidators: true });
     }
     async findAllVerifyDoctors() {
-        return userModel_1.default.find({ role: user_1.UserRole.DOCTOR, verified: true });
+        return userModel_1.default.find({ role: user_1.userRole.DOCTOR, verified: true });
     }
     async findAllDoctors() {
-        return userModel_1.default.find({ role: user_1.UserRole.DOCTOR, verified: false });
+        return userModel_1.default.find({ role: user_1.userRole.DOCTOR, verified: false });
     }
     async updateDoctorVerification(doctorid, is_verified) {
         return userModel_1.default.findOneAndUpdate({ _id: doctorid }, { $set: { verified: is_verified } }, { new: true, runValidators: true });
@@ -216,8 +215,8 @@ class UserRepository {
         try {
             // Get counts for doctors and users
             const [totalDoctors, totalUsers, appointments] = await Promise.all([
-                userModel_1.default.countDocuments({ role: user_1.UserRole.DOCTOR }),
-                userModel_1.default.countDocuments({ role: user_1.UserRole.PATIENT }),
+                userModel_1.default.countDocuments({ role: user_1.userRole.DOCTOR }),
+                userModel_1.default.countDocuments({ role: user_1.userRole.PATIENT }),
                 appointmentModel_1.default.find({})
             ]);
             const totalAppointments = appointments.length;
@@ -382,7 +381,7 @@ class UserRepository {
     async findVerifiedDoctorsWithFilters(page = 1, limit = 6, search = "", department = "") {
         try {
             // Build the query
-            let query = { role: user_1.UserRole.DOCTOR, verified: true };
+            let query = { role: user_1.userRole.DOCTOR, verified: true };
             if (search) {
                 query = {
                     ...query,
@@ -404,7 +403,7 @@ class UserRepository {
                     .limit(limit)
                     .sort({ createdAt: -1 }),
                 userModel_1.default.countDocuments(query),
-                userModel_1.default.distinct('department', { role: user_1.UserRole.DOCTOR, verified: true })
+                userModel_1.default.distinct('department', { role: user_1.userRole.DOCTOR, verified: true })
             ]);
             return {
                 doctors,
@@ -659,4 +658,4 @@ class UserRepository {
         };
     }
 }
-exports.userRepository = new UserRepository();
+exports.default = new _userRepository();

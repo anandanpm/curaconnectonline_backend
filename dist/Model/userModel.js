@@ -45,7 +45,7 @@ const userSchema = new mongoose_1.Schema({
     is_active: { type: Boolean, default: false },
     gender: { type: String, default: null },
     address: { type: String, default: null },
-    role: { type: String, enum: Object.values(user_1.UserRole), default: user_1.UserRole.PATIENT },
+    role: { type: String, enum: Object.values(user_1.userRole), default: user_1.userRole.PATIENT },
     location: { type: String, default: null },
     clinic_name: { type: String, default: null },
     about: { type: String, default: null },
@@ -60,5 +60,5 @@ const userSchema = new mongoose_1.Schema({
     otp: { type: String || null },
     otp_expiration: { type: Date || null },
 });
-const UserModel = mongoose_1.default.model('User', userSchema);
-exports.default = UserModel;
+const userModel = mongoose_1.default.model('User', userSchema);
+exports.default = userModel;

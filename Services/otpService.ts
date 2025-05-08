@@ -3,10 +3,10 @@
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-import { IOtpService } from '../Interfaces/iotpService';
+import { IotpService } from '../Entities/iotpService';
 dotenv.config()
 
-class OtpService implements IOtpService {
+class _otpService implements IotpService {
 
   generateOTP(): string {
     return crypto.randomInt(1000, 9999).toString();
@@ -68,4 +68,4 @@ class OtpService implements IOtpService {
   }
 }
 
-export const otpService = new OtpService()
+export default new _otpService()

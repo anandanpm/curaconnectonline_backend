@@ -3,10 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.conversationRepository = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const conversationModel_1 = __importDefault(require("../Model/conversationModel"));
-class ConversationRepository {
+class _conversationRepository {
     transformMessage(msg) {
         return {
             _id: typeof msg._id === 'string' ? msg._id : msg._id?.toString() || new mongoose_1.default.Types.ObjectId().toString(),
@@ -77,4 +76,4 @@ class ConversationRepository {
         }
     }
 }
-exports.conversationRepository = new ConversationRepository();
+exports.default = new _conversationRepository();

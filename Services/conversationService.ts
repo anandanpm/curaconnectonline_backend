@@ -1,19 +1,19 @@
 
-import { IConversationService } from "../Interfaces/iConversationService";
-import { IConversationRepository } from "../Interfaces/iConversationRepository";
-import { TransformedConversation } from "../Interfaces/conversation";
-import { conversationRepository } from "../Repository/conversationRepository";
+import { IconversationService } from "../Entities/iConversationService";
+import { IconversationRepository } from "../Entities/iConversationRepository";
+import { transformedConversation } from "../Interfaces/conversation";
+import _conversationRepository  from "../Repository/conversationRepository";
 
-export class ConversationService implements IConversationService {
-  constructor(private conversationRepository: IConversationRepository) {}
+export class _conversationService implements IconversationService {
+  constructor(private _conversationRepository: IconversationRepository) {}
 
-  async sendMessage(sender: string, receiver: string, text: string): Promise<TransformedConversation> {
+  async sendMessage(sender: string, receiver: string, text: string): Promise<transformedConversation> {
     try {
       if (!sender || !receiver || !text) {
         throw new Error('Missing required fields');
       }
 
-      let conversation = await this.conversationRepository.findConversation(sender, receiver);
+      let conversation = await this._conversationRepository.findConversation(sender, receiver);
 
       const message = { 
         text, 
@@ -23,9 +23,9 @@ export class ConversationService implements IConversationService {
       };
 
       if (!conversation) {
-        conversation = await this.conversationRepository.createConversation(sender, receiver, message);
+        conversation = await this._conversationRepository.createConversation(sender, receiver, message);
       } else {
-        conversation = await this.conversationRepository.addMessage(conversation._id.toString(), message);
+        conversation = await this._conversationRepository.addMessage(conversation._id.toString(), message);
       }
 
       return conversation;
@@ -35,7 +35,7 @@ export class ConversationService implements IConversationService {
     }
   }
 
-  async getMessages(sender: string, receiver: string): Promise<TransformedConversation | {
+  async getMessages(sender: string, receiver: string): Promise<transformedConversation | {
     _id: null;
     sender: string;
     receiver: string;
@@ -46,7 +46,7 @@ export class ConversationService implements IConversationService {
         throw new Error('Sender and receiver are required');
       }
 
-      const conversation = await this.conversationRepository.findConversation(sender, receiver);
+      const conversation = await this._conversationRepository.findConversation(sender, receiver);
       
       if (!conversation) {
         return {
@@ -65,4 +65,4 @@ export class ConversationService implements IConversationService {
   }
 }
 
-export const conversationService = new ConversationService(conversationRepository);
+export const conversationServiceInstance = new _conversationService(_conversationRepository);

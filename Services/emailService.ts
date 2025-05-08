@@ -1,10 +1,10 @@
 import nodemailer from "nodemailer"
 import dotenv from "dotenv"
-import { IEmailService } from "../Interfaces/iEmailService"
+import { IemailService } from "../Entities/iEmailService"
 
 dotenv.config()
 
-class EmailService implements IEmailService {
+class _emailService implements IemailService {
   private transporter: nodemailer.Transporter
 
   constructor() {
@@ -130,5 +130,5 @@ class EmailService implements IEmailService {
   }
 }
 
-export const emailService = new EmailService()
+export default new _emailService()
 

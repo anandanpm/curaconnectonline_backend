@@ -1,4 +1,4 @@
-export interface IEmailService {
+export interface IemailService {
   sendRejectionEmail(email: string, reason: string): Promise<boolean>;
   sendApprovalEmail(email: string): Promise<boolean>;
   sendAppointmentConfirmation(

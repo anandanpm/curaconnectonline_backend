@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { Slot } from "../Interfaces/slot";
+import { slot } from "../Interfaces/slot";
 
-const slotSchema = new Schema<Slot>({
+const slotSchema = new Schema<slot>({
   doctor_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   day: { type: String, required: true },
   start_time: { type: String, required: true },
@@ -11,5 +11,5 @@ const slotSchema = new Schema<Slot>({
   updated_at: { type: Date, default: Date.now },
 });
 
-const SlotModel = mongoose.model<Slot>('Slot', slotSchema);
-export default SlotModel;
+const slotModel = mongoose.model<slot>('Slot', slotSchema);
+export default slotModel;

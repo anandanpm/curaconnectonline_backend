@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { Prescription, Medicine } from '../Interfaces/prescription';
+import { prescription, medicine } from '../Interfaces/prescription';
 
-const medicineSchema = new Schema<Medicine>({
+const medicineSchema = new Schema<medicine>({
   name: { type: String, required: true },
   dosage: { type: String, required: true },
   frequency: {
@@ -14,7 +14,7 @@ const medicineSchema = new Schema<Medicine>({
   instructions: { type: String }
 });
 
-const prescriptionSchema = new Schema<Prescription>({
+const prescriptionSchema = new Schema<prescription>({
   appointment_id: { type: Schema.Types.ObjectId, ref: 'Appointment', required: true },
   medicines: [medicineSchema],
   notes: { type: String },
@@ -28,5 +28,5 @@ prescriptionSchema.pre('save', function (next) {
   next();
 });
 
-const PrescriptionModel = mongoose.model<Prescription>('Prescription', prescriptionSchema);
-export default PrescriptionModel;
+const prescriptionModel = mongoose.model<prescription>('Prescription', prescriptionSchema);
+export default prescriptionModel;

@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const conversationController_1 = require("../Controllers/conversationController");
+const conversationController_1 = __importDefault(require("../Controllers/conversationController"));
 const router = express_1.default.Router();
-router.post("/send", conversationController_1.conversationController.sendMessage.bind(conversationController_1.conversationController));
-router.get("/messages", conversationController_1.conversationController.getMessages.bind(conversationController_1.conversationController));
+router.post("/send", conversationController_1.default.sendMessage.bind(conversationController_1.default));
+router.get("/messages", conversationController_1.default.getMessages.bind(conversationController_1.default));
 exports.default = router;
