@@ -15,7 +15,9 @@ userrouter.put('/update-profile',userAuth,userController.updateProfile.bind(user
 userrouter.get('/verified-doctors',userController.getDoctors.bind(userController));
 userrouter.get('/doctor-slots/:id',userAuth,userController.doctorSlots.bind(userController));
 userrouter.post('/create-payment-intent',userAuth,userController.createPaymentIntent.bind(userController));
+userrouter.post('/lock-slot', userAuth, userController.lockSlot.bind(userController));
 userrouter.post('/book-appointment',userAuth,userController.createAppointment.bind(userController));
+userrouter.get ('/users/status/:id',userAuth,userController.getStatus.bind(userController));
  userrouter.get('/appointment-details/:id',userAuth,userController.appointmentDetails.bind(userController));
  userrouter.get('/cancelandcompleteappointment-details/:id',userAuth,userController.cancelandcompleteAppointmentDetails.bind(userController));
  userrouter.post('/refund-appointment',userAuth,userController.refundPayment.bind(userController));

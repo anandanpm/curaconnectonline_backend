@@ -1,6 +1,7 @@
 
 import { Server } from "socket.io";
 import http from "http";
+import userController from "Controllers/userController";
 
 interface OnlineUser {
   userId: string;

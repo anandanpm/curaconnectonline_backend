@@ -17,7 +17,9 @@ userrouter.put('/update-profile', authMiddleware_1.userAuth, userController_1.de
 userrouter.get('/verified-doctors', userController_1.default.getDoctors.bind(userController_1.default));
 userrouter.get('/doctor-slots/:id', authMiddleware_1.userAuth, userController_1.default.doctorSlots.bind(userController_1.default));
 userrouter.post('/create-payment-intent', authMiddleware_1.userAuth, userController_1.default.createPaymentIntent.bind(userController_1.default));
+userrouter.post('/lock-slot', authMiddleware_1.userAuth, userController_1.default.lockSlot.bind(userController_1.default));
 userrouter.post('/book-appointment', authMiddleware_1.userAuth, userController_1.default.createAppointment.bind(userController_1.default));
+userrouter.get('/users/status/:id', authMiddleware_1.userAuth, userController_1.default.getStatus.bind(userController_1.default));
 userrouter.get('/appointment-details/:id', authMiddleware_1.userAuth, userController_1.default.appointmentDetails.bind(userController_1.default));
 userrouter.get('/cancelandcompleteappointment-details/:id', authMiddleware_1.userAuth, userController_1.default.cancelandcompleteAppointmentDetails.bind(userController_1.default));
 userrouter.post('/refund-appointment', authMiddleware_1.userAuth, userController_1.default.refundPayment.bind(userController_1.default));

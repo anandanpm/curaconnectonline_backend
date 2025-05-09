@@ -1,10 +1,11 @@
 import { user, loginResponse, signupResponse } from '../Interfaces/user';
-import { appointmentDetails, appointmentData, refundResponse, appointmentResponse } from '../Interfaces/appointment';
+import { appointmentDetails, appointmentData, refundResponse, appointmentResponse, AppointmentResult, AppointmentData } from '../Interfaces/appointment';
 import { slot } from '../Interfaces/slot';
 import { prescription } from '../Interfaces/prescription';
 
 
 export interface IuserService {
+  lockSlot(slotId: any, userId: any, expiresAt: Date): unknown;
   findUserById(userId: any): unknown;
 
   signup(username: string, email: string, password: string): Promise<signupResponse>;
@@ -32,11 +33,14 @@ export interface IuserService {
     departments: string[];
   }>;
 
+  getStatus(userId: string): Promise<boolean>;
+
   getDoctorSlots(doctorId: string): Promise<slot[]>;
 
   createPaymentIntent(amount: number): Promise<string | null>;
 
-  createAppointment(appointmentData: appointmentData): Promise<appointmentResponse>;
+  // createAppointment(appointmentData: appointmentData): Promise<appointmentResponse>;
+  createAppointment(appointmentData: AppointmentData): Promise<AppointmentResult>
 
   getAppointmentDetails(userId: string, page: number, pageSize: number): Promise<{
     appointments: appointmentDetails[];

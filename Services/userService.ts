@@ -13,9 +13,10 @@ import { IuserRepository } from '../Entities/iUserRepository';
 import _userRepository from '../Repository/userRepository'; 
 import { IslotRepository } from '../Entities/iSlotRepository';
 import { IuserService } from '../Entities/iUserService';
-import { appointmentDetails, appointmentResponse, refundResponse } from '../Interfaces/appointment';
+import { appointmentDetails, appointmentResponse, refundResponse,LockResult,AppointmentResult,AppointmentData } from '../Interfaces/appointment';
 import { IotpService } from '../Entities/iotpService';
 import { prescription } from '../Interfaces/prescription';
+import lockModel from '../Model/lockModel';
 dotenv.config();
 
 
@@ -25,6 +26,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 })
 
 export class _userService implements IuserService {
+  private _emailService: any;
   constructor(private _userRepository: IuserRepository, private _slotRepository: IslotRepository, private _otpService: IotpService) { }
 
   async findUserById(userId: string): Promise<user | null> {
@@ -292,35 +294,199 @@ export class _userService implements IuserService {
     }
   }
 
-  async createAppointment(appointmentData: {
-    slot_id: string
-    user_id: string
-    amount: number
-    payment_id: string
-    status: string
-  }): Promise<appointmentResponse> {
+   async lockSlot(slotId: string, userId: string, expiresAt: Date): Promise<LockResult> {
     try {
-      const appointment = await this._userRepository.createAppointment(appointmentData)
+      // Acquire a database-level lock first
+      const dbLockAcquired = await this._slotRepository.acquireDatabaseLock('slot', slotId);
+      
+      if (!dbLockAcquired) {
+        return {
+          success: false,
+          message: "Unable to process your request. Please try again."
+        };
+      }
+      
+      try {
+        // Check if slot is available
+        const isAvailable = await this._slotRepository.isSlotAvailable(slotId);
+        
+        if (!isAvailable) {
+          // Get the slot to determine why it's not available
+          const slot = await this._slotRepository.getSlotsById(slotId);
+          
+          if (!slot) {
+            return {
+              success: false,
+              message: "Slot not found"
+            };
+          }
+          
+          if (slot.status !== 'available') {
+            return {
+              success: false,
+              message: "This slot is already booked"
+            };
+          } else {
+            return {
+              success: false,
+              message: "This slot is temporarily reserved by another user"
+            };
+          }
+        }
+        
+        // If available, create a user lock
+        const lock = await this._slotRepository.lockSlot(slotId, userId, expiresAt);
+        
+        return {
+          success: true,
+          message: "Slot locked successfully",
+          lockId: lock._id?.toString(),
+          expiresAt: lock.expires_at
+        };
+      } finally {
+        // Always release the database lock
+        await this._slotRepository.releaseDatabaseLock('slot', slotId);
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: (error instanceof Error ? error.message : "An unknown error occurred") || "Failed to lock slot"
+      };
+    }
+  }
+  
 
-      const updatedSlot = await this._slotRepository.updateSlotStatus(appointmentData.slot_id, "booked")
+  // async createAppointment(appointmentData: {
+  //   slot_id: string
+  //   user_id: string
+  //   amount: number
+  //   payment_id: string
+  //   status: string
+  // }): Promise<appointmentResponse> {
+  //   try {
+  //     const appointment = await this._userRepository.createAppointment(appointmentData)
 
-      const slot = await this._slotRepository.getSlotsById(appointmentData.slot_id)
+  //     const updatedSlot = await this._slotRepository.updateSlotStatus(appointmentData.slot_id, "booked")
+
+  //     const slot = await this._slotRepository.getSlotsById(appointmentData.slot_id)
+  //     if (!slot) {
+  //       throw new Error("Slot not found")
+  //     }
+  //     const doctor = await this._userRepository.findDoctorById(slot.doctor_id.toString())
+  //     if (!doctor) {
+  //       throw new Error("Doctor not found")
+  //     }
+
+  //     if (!updatedSlot) {
+  //       throw new Error("Failed to update slot status")
+  //     }
+  //     const patient = await this._userRepository.findUserById(appointmentData.user_id)
+  //     if (!patient || !patient.email) {
+  //       throw new Error("Patient information not found")
+  //     }
+
+  //     // Prepare appointment details for email
+  //     const appointmentDetails = {
+  //       doctorName: doctor.username,
+  //       clinicName: doctor.clinic_name || "Not specified",
+  //       department: doctor.department || "Not specified",
+  //       day: slot.day,
+  //       startTime: slot.start_time,
+  //       endTime: slot.end_time,
+  //       amount: appointmentData.amount,
+  //       status: appointmentData.status,
+  //     }
+
+  //     const emailSent = await _emailService.sendAppointmentConfirmation(
+  //       patient.email,
+  //       appointmentDetails
+  //     )
+
+  //     if (!emailSent) {
+  //       console.warn("Failed to send appointment confirmation email")
+  //     }
+
+  //     return {
+  //       message: "Appointment created successfully and slot updated",
+  //       appointment: {
+  //         ...appointment,
+  //         _id: appointment._id instanceof Object ? appointment._id.toString() : appointment._id, // Convert _id to string
+  //       },
+  //       updatedSlot: {
+  //         ...updatedSlot,
+  //         _id: updatedSlot._id instanceof Object ? updatedSlot._id.toString() : updatedSlot._id, // Convert _id to string
+  //       },
+  //     };
+  //   } catch (error) {
+  //     throw error
+  //   }
+  // }
+
+  async createAppointment(appointmentData: AppointmentData): Promise<AppointmentResult> {
+    // Verify the lock if a lockId is provided
+    if (appointmentData.lockId) {
+      const lock = await lockModel.findById(appointmentData.lockId);
+      
+      if (!lock) {
+        throw new Error("Lock not found or has expired");
+      }
+      
+      if (lock.user_id !== appointmentData.user_id) {
+        throw new Error("This slot is locked by another user");
+      }
+      
+      if (lock.expires_at < new Date()) {
+        throw new Error("Lock has expired. Please try booking again");
+      }
+    }
+    
+    // Acquire a database lock for the actual booking operation
+    const dbLockAcquired = await this._slotRepository.acquireDatabaseLock('slot', appointmentData.slot_id);
+    
+    if (!dbLockAcquired) {
+      throw new Error("Unable to process your booking at this time. Please try again.");
+    }
+    
+    try {
+      // Check if slot is still available
+      const slot = await this._slotRepository.getSlotsById(appointmentData.slot_id);
+      
       if (!slot) {
-        throw new Error("Slot not found")
+        throw new Error("Slot not found");
       }
-      const doctor = await this._userRepository.findDoctorById(slot.doctor_id.toString())
-      if (!doctor) {
-        throw new Error("Doctor not found")
+      
+      if (slot.status !== 'available') {
+        throw new Error("This slot is already booked");
       }
-
+      
+      // Proceed with booking
+      const appointment = await this._userRepository.createAppointment({
+        slot_id: appointmentData.slot_id,
+        user_id: appointmentData.user_id,
+        amount: appointmentData.amount,
+        payment_id: appointmentData.payment_id,
+        status: appointmentData.status
+      });
+      
+      // Update the slot status
+      const updatedSlot = await this._slotRepository.updateSlotStatus(appointmentData.slot_id, "booked");
+      
       if (!updatedSlot) {
-        throw new Error("Failed to update slot status")
+        throw new Error("Failed to update slot status");
       }
-      const patient = await this._userRepository.findUserById(appointmentData.user_id)
+      
+      // Get doctor information
+      const doctor = await this._userRepository.findDoctorById(slot.doctor_id.toString());
+      if (!doctor) {
+        throw new Error("Doctor not found");
+      }
+      
+      // Get patient information
+      const patient = await this._userRepository.findUserById(appointmentData.user_id);
       if (!patient || !patient.email) {
-        throw new Error("Patient information not found")
+        throw new Error("Patient information not found");
       }
-
+      
       // Prepare appointment details for email
       const appointmentDetails = {
         doctorName: doctor.username,
@@ -331,30 +497,66 @@ export class _userService implements IuserService {
         endTime: slot.end_time,
         amount: appointmentData.amount,
         status: appointmentData.status,
-      }
-
-      const emailSent = await _emailService.sendAppointmentConfirmation(
+      };
+      
+      // Send confirmation email
+      const emailSent = await this._emailService.sendAppointmentConfirmation(
         patient.email,
         appointmentDetails
-      )
-
+      );
+      
       if (!emailSent) {
-        console.warn("Failed to send appointment confirmation email")
+        console.warn("Failed to send appointment confirmation email");
       }
-
+      
+      // Remove the lock if it exists
+      if (appointmentData.lockId) {
+        await this._slotRepository.unlockSlot(appointmentData.lockId);
+      }
+      
+      // Prepare and return the result
+      const appointmentResult = this.formatAppointment(appointment);
+      const slotResult = this.formatSlot(updatedSlot);
+      
       return {
         message: "Appointment created successfully and slot updated",
-        appointment: {
-          ...appointment,
-          _id: appointment._id instanceof Object ? appointment._id.toString() : appointment._id, // Convert _id to string
-        },
-        updatedSlot: {
-          ...updatedSlot,
-          _id: updatedSlot._id instanceof Object ? updatedSlot._id.toString() : updatedSlot._id, // Convert _id to string
-        },
+        appointment: appointmentResult,
+        updatedSlot: slotResult
       };
     } catch (error) {
-      throw error
+      throw error;
+    } finally {
+      // Always release the database lock
+      await this._slotRepository.releaseDatabaseLock('slot', appointmentData.slot_id);
+    }
+  }
+  
+  // Helper method to format appointment data
+  private formatAppointment(appointment: any): any {
+    return {
+      ...appointment,
+      _id: appointment._id instanceof Object ? appointment._id.toString() : appointment._id,
+    };
+  }
+  
+  // Helper method to format slot data
+  private formatSlot(slot: any): any {
+    return {
+      ...slot,
+      _id: slot._id instanceof Object ? slot._id.toString() : slot._id,
+    };
+  }
+
+  async getStatus(userId: string): Promise<boolean> {
+    try {
+      const user = await this._userRepository.findUserById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      return user.is_active ?? false;
+    } catch (error) {
+      console.error("Error fetching user status:", error);
+      throw error;
     }
   }
 

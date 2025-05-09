@@ -88,3 +88,31 @@ export interface appointmentResponse {
   };
 }
 
+export interface AppointmentData {
+  slot_id: string;
+  user_id: string;
+  amount: number;
+  payment_id: string;
+  status: string;
+  lockId?: string;
+}
+
+export interface AppointmentResult {
+  message: string;
+  appointment: {
+    _id: string;
+    [key: string]: any;
+  };
+  updatedSlot: {
+    _id: string;
+    [key: string]: any;
+  };
+}
+
+export interface LockResult {
+  success: boolean;
+  message: string;
+  lockId?: string;
+  expiresAt?: Date;
+}
+

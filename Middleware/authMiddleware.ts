@@ -6,7 +6,7 @@ import UserModel from '../Model/userModel';
 interface JwtPayload {
   role: string;
   _id: string;
-  [key: string]: string | number | boolean | null | undefined;
+  [key: string]: string;
 }
 
 const auth = (allowedRoles: string[]) => {

@@ -224,24 +224,107 @@ class userController {
     }
   }
 
-  async createAppointment(req: Request, res: Response): Promise<void> {
+  async lockSlot(req: Request, res: Response): Promise<void> {
     try {
-      console.log(req.body)
+      const { slotId, userId, lockExpiration } = req.body;
+      
+      if (!slotId || !userId || !lockExpiration) {
+        res.status(400).json({ 
+          success: false,
+          message: "Missing required parameters"
+        });
+        return;
+      }
+      
+      const expiresAt = new Date(lockExpiration);
+      
+      // Validate expiration time (e.g., not more than 10 minutes from now)
+      const tenMinutesFromNow = new Date(Date.now() + 10 * 60 * 1000);
+      if (expiresAt > tenMinutesFromNow) {
+        res.status(400).json({
+          success: false,
+          message: "Lock expiration cannot be more than 10 minutes in the future"
+        });
+        return;
+      }
+      
+      const result = await this._userService.lockSlot(slotId, userId, expiresAt);
+      
+      if ((result as { success: boolean }).success) {
+        res.status(200).json(result);
+      } else {
+        res.status(409).json(result);
+      }
+    } catch (error) {
+      console.error('Error locking slot:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to lock slot' 
+      });
+    }
+  }
+
+  // async createAppointment(req: Request, res: Response): Promise<void> {
+  //   try {
+  //     console.log(req.body)
+  //     const appointmentData = {
+  //       slot_id: req.body.slotId,
+  //       user_id: req.body.userId,
+  //       amount: req.body.amount,
+  //       payment_id: req.body.paymentId,
+  //       status: 'pending'
+  //     };
+
+  //     const result = await this._userService.createAppointment(appointmentData);
+  //     res.status(201).json(result);
+  //   } catch (error) {
+  //     console.error('Error creating appointment:', error);
+  //     res.status(500).json({ message: 'Failed to create appointment' });
+  //   }
+  // }
+
+async createAppointment(req: Request, res: Response): Promise<void> {
+    try {
+      console.log(req.body);
       const appointmentData = {
         slot_id: req.body.slotId,
         user_id: req.body.userId,
         amount: req.body.amount,
         payment_id: req.body.paymentId,
-        status: 'pending'
+        status: 'pending',
+        lockId: req.body.lockId // Include the lockId if provided
       };
-
+      
       const result = await this._userService.createAppointment(appointmentData);
       res.status(201).json(result);
     } catch (error) {
       console.error('Error creating appointment:', error);
+      
+      // Provide more specific error messages based on the error type
+      if (error instanceof Error && error.message === "This slot is already booked") {
+        res.status(409).json({ message: 'This slot has already been booked' });
+      } else if (error instanceof Error && error.message === "Lock not found or has expired") {
+         res.status(400).json({ message: 'Your reservation has expired. Please try booking again.' });
+      } else if (error instanceof Error && error.message  === "Lock has expired. Please try booking again") {
+         res.status(400).json({ message: 'Your reservation has expired. Please try booking again.' });
+      }
+      
       res.status(500).json({ message: 'Failed to create appointment' });
     }
   }
+
+  async getStatus(req: Request, res: Response): Promise<void> {
+    try{
+      const userId= req.params.id
+      const status = await this._userService.getStatus(userId)
+      console.log(status, 'the status is coming')
+      res.status(200).json(status)
+    }catch(error){
+      console.error("Error fetching status:", error)
+      res.status(500).json({ message: "Internal server error" })
+    }
+  }
+
 
   async appointmentDetails(req: Request, res: Response): Promise<void> {
     try {
