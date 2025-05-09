@@ -53,33 +53,21 @@ class doctorController {
       const { Email, password } = req.body;
       const { accessToken, refreshToken, username, email, isActive, role, profile_pic, age, phone, certification, experience, department, medical_license, address, clinic_name, about, education, gender, _id } = await this._doctorService.login(Email, password);
 
-      // res.cookie('accessToken',accessToken, {
-      //   httpOnly: true,
-      //   secure: true, // Required for HTTPS
-      //   sameSite: 'none', // Required for cross-site cookies
-      //   maxAge: 24 * 60 * 60 * 1000, // 1 day
-      // });
+      res.cookie('accessToken',accessToken, {
+        httpOnly: true,
+        secure: true, // Required for HTTPS
+        sameSite: 'none', // Required for cross-site cookies
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+      });
   
-      // res.cookie('refreshToken', refreshToken, {
-      //   httpOnly: true,
-      //   secure: true,
-      //   sameSite: 'none',
-      //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      // });
-
-      res.cookie('accessToken', accessToken, {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        path: '/',
-        maxAge: 15 * 60 * 1000 // 15 minutes
-      });
-
       res.cookie('refreshToken', refreshToken, {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
+
+      
 
       res.json({ message: 'Login successful', username, email: Email, role, isActive, profile_pic, age, phone, certification, experience, department, medical_license, address, clinic_name, about, gender, education, _id });
     } catch (error: any) {
@@ -108,34 +96,19 @@ class doctorController {
       const { token } = req.body;
       const result = await this._doctorService.googleAuth(token);
 
-      // res.cookie('accessToken', result.accessToken, {
-      //   httpOnly: true,
-      //   secure: true, // Required for HTTPS
-      //   sameSite: 'none', // Required for cross-site cookies
-      //   maxAge: 24 * 60 * 60 * 1000, // 1 day
-      // });
-  
-      // res.cookie('refreshToken', result.refreshToken, {
-      //   httpOnly: true,
-      //   secure: true,
-      //   sameSite: 'none',
-      //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      // });
-
       res.cookie('accessToken', result.accessToken, {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        path: '/',
-        maxAge: 15 * 60 * 1000 // 15 minutes
+        httpOnly: true,
+        secure: true, // Required for HTTPS
+        sameSite: 'none', // Required for cross-site cookies
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
       });
-
+  
       res.cookie('refreshToken', result.refreshToken, {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
-
 
       res.status(200).json({
         message: 'Google authentication successful',
