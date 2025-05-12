@@ -13,12 +13,19 @@
         "*": ["*"]                               // Resolve all paths relative to the base
       }
     },
-   "include": [
-    "./**/*.ts"
-  ],
+    "include": [
+      "index.ts",                                  
+      "Config/**/*",                             
+      "Controller/**/*",                        
+      "Interfaces/**/*",                         
+      "Middleware/**/*",                         
+      "Model/**/*",                              
+      "Repository/**/*",                         
+      "Route/**/*",                            
+      "Services/**/*"                           
+, "Entities/iotpService.ts", "Entities/iEmailService.ts"    ],
     "exclude": [
-      "node_modules",
-      "dist"                             
+      "node_modules"                             
     ]
   }
   
