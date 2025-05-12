@@ -15,29 +15,17 @@ class adminController {
         try {
             const { email, password } = req.body;
             const { accessToken, refreshToken, username, email: adminEmail, role, isActive } = await this._adminService.login(email, password);
-            // res.cookie('accessToken',accessToken, {
-            //   httpOnly: true,
-            //   secure: true, // Required for HTTPS
-            //   sameSite: 'none', // Required for cross-site cookies
-            //   maxAge: 24 * 60 * 60 * 1000, // 1 day
-            // });
-            // res.cookie('refreshToken', refreshToken, {
-            //   httpOnly: true,
-            //   secure: true,
-            //   sameSite: 'none',
-            //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            // });
             res.cookie('accessToken', accessToken, {
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-                path: '/',
-                maxAge: 15 * 60 * 1000 // 15 minutes
+                httpOnly: true,
+                secure: true, // Required for HTTPS
+                sameSite: 'none', // Required for cross-site cookies
+                maxAge: 24 * 60 * 60 * 1000, // 1 day
             });
             res.cookie('refreshToken', refreshToken, {
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-                path: '/',
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             });
             res.json({ message: 'Admin login successful', username, email: adminEmail, role, isActive });
         }

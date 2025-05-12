@@ -58,29 +58,17 @@ class userController {
             console.log(req.body);
             const { accessToken, refreshToken, username, email, role, isActive, _id, gender, profile_pic, phone, age, address } = await this._userService.login(Email, password);
             // Fix: Include httpOnly option and fix sameSite settings
-            // res.cookie('accessToken', accessToken, {
-            //   httpOnly: true,
-            //   secure: true, // Required for HTTPS
-            //   sameSite: 'none', // Required for cross-site cookies
-            //   maxAge: 24 * 60 * 60 * 1000, // 1 day
-            // });
-            // res.cookie('refreshToken', refreshToken, {
-            //   httpOnly: true,
-            //   secure: true,
-            //   sameSite: 'none',
-            //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            // });
             res.cookie('accessToken', accessToken, {
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-                path: '/',
-                maxAge: 15 * 60 * 1000 // 15 minutes
+                httpOnly: true,
+                secure: true, // Required for HTTPS
+                sameSite: 'none', // Required for cross-site cookies
+                maxAge: 24 * 60 * 60 * 1000, // 1 day
             });
             res.cookie('refreshToken', refreshToken, {
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-                path: '/',
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             });
             res.json({ message: 'Login successful', username, email, role, isActive, _id, age, gender, profile_pic, phone, address });
         }
@@ -109,29 +97,17 @@ class userController {
         try {
             const { token } = req.body;
             const result = await this._userService.googleAuth(token);
-            // res.cookie('accessToken', result.accessToken, {
-            //   httpOnly: true,
-            //   secure: true, // Required for HTTPS
-            //   sameSite: 'none', // Required for cross-site cookies
-            //   maxAge: 24 * 60 * 60 * 1000, // 1 day
-            // });
-            // res.cookie('refreshToken', result.refreshToken, {
-            //   httpOnly: true,
-            //   secure: true,
-            //   sameSite: 'none',
-            //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            // });
             res.cookie('accessToken', result.accessToken, {
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-                path: '/',
-                maxAge: 15 * 60 * 1000 // 15 minutes
+                httpOnly: true,
+                secure: true, // Required for HTTPS
+                sameSite: 'none', // Required for cross-site cookies
+                maxAge: 24 * 60 * 60 * 1000, // 1 day
             });
             res.cookie('refreshToken', result.refreshToken, {
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-                path: '/',
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             });
             res.status(200).json({
                 message: 'Google authentication successful',
